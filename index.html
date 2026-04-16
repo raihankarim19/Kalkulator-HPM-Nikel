@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Kalkulator HPM Bijih Nikel berdasarkan KEPMEN ESDM No. 144 Tahun 2026. Hitung harga patokan mineral dengan data HMA terkini.">
+    <meta name="theme-color" content="#163254">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="HPM Nikel">
+    <title>Kalkulator HPM Bijih Nikel — KEPMEN 144/2026</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="stylesheet" href="styles.css?v=4">
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-content">
+            <div class="header-brand">
+                <img src="logo.png" alt="HPM Nickel Calculator" class="header-icon" style="object-fit:cover;">
+                <div class="header-title">
+                    <h1>Kalkulator HPM Bijih Nikel</h1>
+                    <p>KEPMEN ESDM No. 144 Tahun 2026</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" id="btn-install" style="display:none;" onclick="installPWA()">
+                    📲 Install
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- Section 1: Ore Type & Mineral Input -->
+        <section class="section-card" id="section-input">
+            <div class="section-header">
+                <div class="section-number">1</div>
+                <div class="section-title">Input Kadar Mineral & Moisture</div>
+            </div>
+
+            <!-- Ore Type Selector -->
+            <div class="ore-selector">
+                <button type="button" class="ore-btn" id="btn-saprolite" onclick="selectOre('saprolite')">
+                    <span class="ore-label">🟢 Saprolit</span>
+                    <span class="ore-desc">Ni ≥ 1.5%</span>
+                </button>
+                <button type="button" class="ore-btn" id="btn-limonite" onclick="selectOre('limonite')">
+                    <span class="ore-label">🟠 Limonit</span>
+                    <span class="ore-desc">Ni < 1.5%</span>
+                </button>
+                <button type="button" class="ore-btn active" id="btn-custom" onclick="selectOre('custom')">
+                    <span class="ore-label">✏️ Custom</span>
+                    <span class="ore-desc">Input manual</span>
+                </button>
+            </div>
+
+            <!-- Mineral Inputs -->
+            <div class="input-grid">
+                <div class="input-group">
+                    <label class="input-label" for="input-ni">
+                        Kadar Ni <span class="unit">%</span>
+                    </label>
+                    <input type="number" id="input-ni" class="input-field"
+                           placeholder="1.35" step="0.01" min="0" max="100"
+                           oninput="onInputChange()">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="input-fe">
+                        Kadar Fe <span class="unit">% (≤35% dihitung)</span>
+                    </label>
+                    <input type="number" id="input-fe" class="input-field"
+                           placeholder="40.50" step="0.01" min="0" max="100"
+                           oninput="onInputChange()">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="input-co">
+                        Kadar Co <span class="unit">% (≥0.05% dihitung)</span>
+                    </label>
+                    <input type="number" id="input-co" class="input-field"
+                           placeholder="0.15" step="0.001" min="0" max="100"
+                           oninput="onInputChange()">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="input-cr">
+                        Kadar Cr <span class="unit">%</span>
+                    </label>
+                    <input type="number" id="input-cr" class="input-field"
+                           placeholder="2.24" step="0.01" min="0" max="100"
+                           oninput="onInputChange()">
+                </div>
+                <div class="input-group full-width">
+                    <label class="input-label" for="input-mc">
+                        Moisture Content (MC) <span class="unit">%</span>
+                    </label>
+                    <input type="number" id="input-mc" class="input-field"
+                           placeholder="36.69" step="0.01" min="0" max="100"
+                           oninput="onInputChange()">
+                </div>
+            </div>
+
+            <!-- Threshold Status -->
+            <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+                <span class="threshold-badge" id="badge-fe">—</span>
+                <span class="threshold-badge" id="badge-co">—</span>
+            </div>
+        </section>
+
+        <!-- Section 2: HMA Input -->
+        <section class="section-card" id="section-hma">
+            <div class="hma-header">
+                <div class="section-header" style="margin-bottom:0;">
+                    <div class="section-number">2</div>
+                    <div class="section-title">Harga Mineral Acuan (HMA)</div>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <div class="hma-status" id="hma-status">
+                        <span class="dot offline"></span>
+                        <span>Manual</span>
+                    </div>
+                    <button class="btn btn-primary" id="btn-fetch-hma" onclick="fetchHMAData()">
+                        <span class="btn-text">🔄 Ambil HMA</span>
+                        <span class="btn-spinner"></span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="input-grid input-grid-hma">
+                <div class="input-group">
+                    <label class="input-label" for="input-hma-nikel">
+                        HMA Nikel <span class="unit">USD/dmt</span>
+                    </label>
+                    <input type="number" id="input-hma-nikel" class="input-field"
+                           placeholder="17092.67" step="0.01" min="0"
+                           oninput="onInputChange()">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="input-hma-bijihbesi">
+                        HMA Bijih Besi <span class="unit">USD/dmt</span>
+                    </label>
+                    <input type="number" id="input-hma-bijihbesi" class="input-field"
+                           placeholder="1.55" step="0.01" min="0"
+                           oninput="onInputChange()">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="input-hma-kobalt">
+                        HMA Kobalt <span class="unit">USD/dmt</span>
+                    </label>
+                    <input type="number" id="input-hma-kobalt" class="input-field"
+                           placeholder="55848" step="0.01" min="0"
+                           oninput="onInputChange()">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="input-hma-bijihkrom">
+                        HMA Bijih Krom <span class="unit">USD/dmt</span>
+                    </label>
+                    <input type="number" id="input-hma-bijihkrom" class="input-field"
+                           placeholder="6.37" step="0.01" min="0"
+                           oninput="onInputChange()">
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: CF Detail -->
+        <section class="section-card" id="section-cf">
+            <div class="section-header">
+                <div class="section-number">3</div>
+                <div class="section-title">Corrective Factor (CF) Aktual</div>
+            </div>
+
+            <div class="cf-detail">
+                <div class="cf-row">
+                    <span class="cf-label">CF Baseline (Ni 1.6%)</span>
+                    <span class="cf-value">30.00%</span>
+                </div>
+                <div class="cf-row">
+                    <span class="cf-label">Δ Kadar Ni vs Baseline</span>
+                    <span class="cf-value" id="cf-delta-ni">—</span>
+                </div>
+                <div class="cf-row">
+                    <span class="cf-label">Δ CF Ni</span>
+                    <span class="cf-value" id="cf-delta-cf">—</span>
+                </div>
+                <div class="cf-row" style="border-top:1px solid rgba(8,98,164,0.15); padding-top:8px; margin-top:4px;">
+                    <span class="cf-label" style="font-weight:600;">CF Bijih Nikel Aktual</span>
+                    <span class="cf-value" id="cf-aktual" style="font-size:16px;">—</span>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+                <div class="cf-detail" style="text-align:center;">
+                    <div style="font-size:11px; color:var(--gray-500); margin-bottom:2px;">CF Besi</div>
+                    <div class="cf-value">30%</div>
+                </div>
+                <div class="cf-detail" style="text-align:center;">
+                    <div style="font-size:11px; color:var(--gray-500); margin-bottom:2px;">CF Kobalt</div>
+                    <div class="cf-value">30%</div>
+                </div>
+                <div class="cf-detail" style="text-align:center;">
+                    <div style="font-size:11px; color:var(--gray-500); margin-bottom:2px;">CF Krom</div>
+                    <div class="cf-value">10%</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Component Breakdown -->
+        <section class="section-card" id="section-komponen">
+            <div class="section-header">
+                <div class="section-number">4</div>
+                <div class="section-title">Perhitungan Komponen HPM</div>
+            </div>
+
+            <div class="formula-info">
+                HPM = [(%Ni × CF_Ni × HMA_Ni) + (%Fe × CF_Fe × HMA_BijihBesi × 100)<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ (%Co × CF_Co × HMA_Co) + (%Cr × CF_Cr × HMA_BijihKrom × 100)] × (1 - MC)
+            </div>
+
+            <div class="results-grid">
+                <div class="result-row">
+                    <span class="result-label"><span class="icon">🟢</span> Komponen Nikel</span>
+                    <span class="result-value" id="res-komponen-ni">—</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label"><span class="icon">🔵</span> Komponen Besi (ikutan)</span>
+                    <span class="result-value" id="res-komponen-fe">—</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label"><span class="icon">🟣</span> Komponen Kobalt (ikutan)</span>
+                    <span class="result-value" id="res-komponen-co">—</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label"><span class="icon">🟠</span> Komponen Krom (ikutan)</span>
+                    <span class="result-value" id="res-komponen-cr">—</span>
+                </div>
+                <hr class="divider" style="margin:4px 0;">
+                <div class="result-row" style="background: rgba(8, 98, 164, 0.05); border-color: rgba(8, 98, 164, 0.15);">
+                    <span class="result-label" style="font-weight:600;">Sub-total (DMT basis)</span>
+                    <span class="result-value" id="res-subtotal" style="color:var(--blue-700);">—</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Faktor (1 - MC)</span>
+                    <span class="result-value" id="res-faktor-mc">—</span>
+                </div>
+            </div>
+
+            <!-- HPM FINAL -->
+            <div class="hpm-result-card">
+                <div class="hpm-result-label">HPM Bijih Nikel Revisi</div>
+                <div class="hpm-result-value" id="res-hpm-final">$0.00</div>
+                <div class="hpm-result-unit">USD per Wet Metric Ton (WMT)</div>
+            </div>
+        </section>
+
+        <!-- Section 5: Comparison -->
+        <section class="section-card" id="section-perbandingan">
+            <div class="section-header">
+                <div class="section-number">5</div>
+                <div class="section-title">Perbandingan dengan HPM Eksisting</div>
+            </div>
+
+            <div style="font-size:12px; color:var(--gray-500); margin-bottom:12px;">
+                Formula lama (KEPMEN 268/2025): HPM = %Ni × CF_Ni × HMA_Ni × (1 - MC)
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-card new">
+                    <div class="label">HPM Revisi (144/2026)</div>
+                    <div class="value" id="cmp-new">$0.00</div>
+                </div>
+                <div class="comparison-card old">
+                    <div class="label">HPM Eksisting (268/2025)</div>
+                    <div class="value" id="cmp-old">$0.00</div>
+                </div>
+            </div>
+
+            <div class="selisih-row">
+                <span class="label">Selisih (USD/wmt)</span>
+                <span class="value" id="cmp-selisih">—</span>
+            </div>
+            <div class="selisih-row" style="margin-top:8px; background: rgba(13, 114, 109, 0.06); border-color: rgba(13, 114, 109, 0.15);">
+                <span class="label">% Kenaikan</span>
+                <span class="value" id="cmp-pct" style="color:var(--teal-900);">—</span>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Credit -->
+    <footer style="text-align:center; padding:20px 16px 12px; font-size:12px; color:var(--gray-500); font-weight:500;">
+        Kalkulator ini dibuat oleh <strong style="color:var(--blue-900);">Raihan Karim</strong>
+    </footer>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Install Banner -->
+    <div class="install-banner" id="install-banner">
+        <div class="info">
+            <strong>📲 Install Aplikasi</strong><br>
+            Tambahkan ke home screen untuk akses cepat
+        </div>
+        <button class="btn btn-primary" onclick="installPWA()">Install</button>
+        <button class="btn btn-secondary" onclick="dismissInstall()" style="padding:8px;">✕</button>
+    </div>
+
+    <script src="calculator.js?v=4"></script>
+    <script>
+        // ============================================================
+        // UI Controller
+        // ============================================================
+
+        let currentOreType = 'custom';
+        let deferredInstallPrompt = null;
+
+        // --- Input getters ---
+        function getInputs() {
+            return {
+                ni: document.getElementById('input-ni').value,
+                fe: document.getElementById('input-fe').value,
+                co: document.getElementById('input-co').value,
+                cr: document.getElementById('input-cr').value,
+                mc: document.getElementById('input-mc').value,
+                hmaNikel: document.getElementById('input-hma-nikel').value,
+                hmaBijihBesi: document.getElementById('input-hma-bijihbesi').value,
+                hmaKobalt: document.getElementById('input-hma-kobalt').value,
+                hmaBijihKrom: document.getElementById('input-hma-bijihkrom').value,
+            };
+        }
+
+        // --- Ore type selector ---
+        function selectOre(type) {
+            currentOreType = type;
+            document.querySelectorAll('.ore-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${type}`).classList.add('active');
+
+            if (type !== 'custom' && HPM.PRESETS[type]) {
+                const preset = HPM.PRESETS[type];
+                document.getElementById('input-ni').value = preset.ni;
+                document.getElementById('input-fe').value = preset.fe;
+                document.getElementById('input-co').value = preset.co;
+                document.getElementById('input-cr').value = preset.cr;
+                document.getElementById('input-mc').value = preset.mc;
+                onInputChange();
+            }
+        }
+
+        // --- Main calculation ---
+        function onInputChange() {
+            const inputs = getInputs();
+
+            // Skip if no Ni input
+            if (!inputs.ni) {
+                clearResults();
+                return;
+            }
+
+            const result = HPM.calculate(inputs);
+            updateUI(result);
+        }
+
+        function updateUI(r) {
+            // Threshold badges
+            const badgeFe = document.getElementById('badge-fe');
+            if (r.feIncluded) {
+                badgeFe.className = 'threshold-badge included';
+                badgeFe.textContent = '✓ Fe ≤ 35% — Dihitung';
+            } else {
+                badgeFe.className = 'threshold-badge excluded';
+                badgeFe.textContent = '✗ Fe > 35% — Tidak dihitung';
+            }
+
+            const badgeCo = document.getElementById('badge-co');
+            if (r.coIncluded) {
+                badgeCo.className = 'threshold-badge included';
+                badgeCo.textContent = '✓ Co ≥ 0.05% — Dihitung';
+            } else {
+                badgeCo.className = 'threshold-badge excluded';
+                badgeCo.textContent = '✗ Co < 0.05% — Tidak dihitung';
+            }
+
+            // CF detail
+            document.getElementById('cf-delta-ni').textContent =
+                (r.deltaNi >= 0 ? '+' : '') + (r.deltaNi * 100).toFixed(2) + '%';
+            document.getElementById('cf-delta-cf').textContent =
+                (r.deltaCFNi >= 0 ? '+' : '') + (r.deltaCFNi * 100).toFixed(2) + '%';
+            document.getElementById('cf-aktual').textContent =
+                HPM.formatPct(r.cfNi);
+
+            // Component breakdown
+            document.getElementById('res-komponen-ni').textContent = '$' + HPM.formatUSD(r.komponenNi);
+            document.getElementById('res-komponen-fe').textContent = '$' + HPM.formatUSD(r.komponenFe);
+            document.getElementById('res-komponen-co').textContent = '$' + HPM.formatUSD(r.komponenCo);
+            document.getElementById('res-komponen-cr').textContent = '$' + HPM.formatUSD(r.komponenCr);
+            document.getElementById('res-subtotal').textContent = '$' + HPM.formatUSD(r.subTotal);
+            document.getElementById('res-faktor-mc').textContent = r.faktorMC.toFixed(4);
+
+            // Final HPM
+            document.getElementById('res-hpm-final').textContent = '$' + HPM.formatUSD(r.hpm);
+
+            // Comparison
+            document.getElementById('cmp-new').textContent = '$' + HPM.formatUSD(r.hpm);
+            document.getElementById('cmp-old').textContent = '$' + HPM.formatUSD(r.hpmOld);
+            document.getElementById('cmp-selisih').textContent =
+                (r.selisih >= 0 ? '+' : '') + '$' + HPM.formatUSD(r.selisih);
+            document.getElementById('cmp-pct').textContent =
+                (r.pctKenaikan >= 0 ? '+' : '') + HPM.formatPct(r.pctKenaikan);
+        }
+
+        function clearResults() {
+            ['cf-delta-ni', 'cf-delta-cf', 'cf-aktual',
+             'res-komponen-ni', 'res-komponen-fe', 'res-komponen-co', 'res-komponen-cr',
+             'res-subtotal', 'res-faktor-mc'].forEach(id => {
+                document.getElementById(id).textContent = '—';
+            });
+            document.getElementById('res-hpm-final').textContent = '$0.00';
+            document.getElementById('cmp-new').textContent = '$0.00';
+            document.getElementById('cmp-old').textContent = '$0.00';
+            document.getElementById('cmp-selisih').textContent = '—';
+            document.getElementById('cmp-pct').textContent = '—';
+            document.getElementById('badge-fe').textContent = '—';
+            document.getElementById('badge-co').textContent = '—';
+            document.getElementById('badge-fe').className = 'threshold-badge';
+            document.getElementById('badge-co').className = 'threshold-badge';
+        }
+
+        // --- HMA Fetch ---
+        async function fetchHMAData() {
+            const btn = document.getElementById('btn-fetch-hma');
+            btn.classList.add('btn-loading');
+
+            try {
+                const hma = await HPM.fetchHMA();
+
+                document.getElementById('input-hma-nikel').value = hma.nikel;
+                document.getElementById('input-hma-bijihbesi').value = hma.bijihBesi;
+                document.getElementById('input-hma-kobalt').value = hma.kobalt;
+                document.getElementById('input-hma-bijihkrom').value = hma.bijihKrom;
+
+                // Save to localStorage
+                localStorage.setItem('hma_cache', JSON.stringify(hma));
+
+                // Update status
+                const statusEl = document.getElementById('hma-status');
+                statusEl.innerHTML = '<span class="dot"></span><span>Live ESDM</span>';
+
+                showToast('✅ Data HMA berhasil diperbarui dari ESDM', 'success');
+                onInputChange();
+            } catch (err) {
+                showToast('❌ ' + err.message, 'error');
+            } finally {
+                btn.classList.remove('btn-loading');
+            }
+        }
+
+        // --- Toast ---
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 4000);
+        }
+
+        // --- PWA Install ---
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+            document.getElementById('btn-install').style.display = 'inline-flex';
+            setTimeout(() => {
+                document.getElementById('install-banner').classList.add('show');
+            }, 3000);
+        });
+
+        function installPWA() {
+            if (deferredInstallPrompt) {
+                deferredInstallPrompt.prompt();
+                deferredInstallPrompt.userChoice.then(result => {
+                    if (result.outcome === 'accepted') {
+                        showToast('🎉 Aplikasi berhasil diinstall!', 'success');
+                    }
+                    deferredInstallPrompt = null;
+                    document.getElementById('btn-install').style.display = 'none';
+                    document.getElementById('install-banner').classList.remove('show');
+                });
+            }
+        }
+
+        function dismissInstall() {
+            document.getElementById('install-banner').classList.remove('show');
+        }
+
+        // --- Init ---
+        function init() {
+            // Load cached HMA
+            const cached = localStorage.getItem('hma_cache');
+            if (cached) {
+                try {
+                    const hma = JSON.parse(cached);
+                    document.getElementById('input-hma-nikel').value = hma.nikel || '';
+                    document.getElementById('input-hma-bijihbesi').value = hma.bijihBesi || '';
+                    document.getElementById('input-hma-kobalt').value = hma.kobalt || '';
+                    document.getElementById('input-hma-bijihkrom').value = hma.bijihKrom || '';
+                    const statusEl = document.getElementById('hma-status');
+                    statusEl.innerHTML = '<span class="dot"></span><span>Cached</span>';
+                } catch (e) { /* ignore */ }
+            }
+
+            // Set default HMA if no cache
+            if (!document.getElementById('input-hma-nikel').value) {
+                document.getElementById('input-hma-nikel').value = HPM.defaultHMA.nikel;
+                document.getElementById('input-hma-bijihbesi').value = HPM.defaultHMA.bijihBesi;
+                document.getElementById('input-hma-kobalt').value = HPM.defaultHMA.kobalt;
+                document.getElementById('input-hma-bijihkrom').value = HPM.defaultHMA.bijihKrom;
+            }
+
+            // Register service worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('SW registered:', reg.scope))
+                    .catch(err => console.log('SW error:', err));
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
