@@ -1,5 +1,5 @@
 // ============================================================
-// HPM Bijih Nikel Calculator — KEPMEN ESDM No. 363.K/MB.01/MEM.B/2026
+// HPM Bijih Nikel Calculator - KEPMEN ESDM No. 363.K/MB.01/MEM.B/2026
 // (Perubahan Kedua atas Kepmen ESDM No. 268.K/MB.01/MEM.B/2025,
 //  berlaku efektif 15 September 2026)
 // Core Calculation Engine
@@ -78,7 +78,7 @@ const HPM = (() => {
     }
 
     /**
-     * CF Bijih Nikel Aktual — KEPMEN 363/2026
+     * CF Bijih Nikel Aktual - KEPMEN 363/2026
      *   Ni > 1,2% : CF = 30% + ((Ni − 1,6%) / 0,1%) × 1%
      *   Ni ≤ 1,2% : CF = 14% + ((Ni − 1,2%) / 0,1%) × 1%
      */
@@ -95,14 +95,14 @@ const HPM = (() => {
     }
 
     /**
-     * CF Bijih Nikel — KEPMEN 144/2026 (sebelumnya): linear 30% @1,6% untuk semua kadar
+     * CF Bijih Nikel - KEPMEN 144/2026 (sebelumnya): linear 30% @1,6% untuk semua kadar
      */
     function calculateCFNiPrev(niDecimal) {
         const deltaCF = ((niDecimal - REGS.BASELINE_NI) / 0.001) * REGS.CF_SENSITIVITY;
         return Math.max(0, REGS.CF_NI_BASELINE + deltaCF);
     }
 
-    /** CF Kobalt ikutan — KEPMEN 363/2026: 30% (Ni > 1,2%) atau 17% (Ni ≤ 1,2%) */
+    /** CF Kobalt ikutan - KEPMEN 363/2026: 30% (Ni > 1,2%) atau 17% (Ni ≤ 1,2%) */
     function calculateCFCo(niDecimal) {
         return isLowGrade(niDecimal) ? REGS.CF_CO_LOW_GRADE : REGS.CF_CO;
     }
@@ -141,7 +141,7 @@ const HPM = (() => {
     }
 
     /**
-     * Main HPM calculation — KEPMEN 363/2026, with comparison to KEPMEN 144/2026
+     * Main HPM calculation - KEPMEN 363/2026, with comparison to KEPMEN 144/2026
      */
     function calculate(inputs) {
         const ni = toDecimal(inputs.ni);
@@ -366,7 +366,7 @@ const HPM = (() => {
         };
     }
 
-    // Rentang wajar HMA (USD/dmt) — menolak hasil parse yang keliru
+    // Rentang wajar HMA (USD/dmt) - menolak hasil parse yang keliru
     const HMA_SANITY = {
         nikel:     [5000, 60000],
         kobalt:    [5000, 150000],

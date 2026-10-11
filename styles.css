@@ -1,5 +1,5 @@
 /* ============================================================
-   HPM Bijih Nikel Calculator — Corporate Theme
+   HPM Bijih Nikel Calculator - Corporate Theme
    Color Palette: Blues, Teals on White Background
    Font: Myriad Pro
    ============================================================ */
@@ -810,7 +810,7 @@ body::before {
 .hma-source.show { display: block; }
 
 /* ============================================================
-   Section 6 — Sensitivitas kadar Ni
+   Section 6 - Sensitivitas kadar Ni
    ============================================================ */
 .section-card:nth-child(6) { animation-delay: 0.3s; }
 

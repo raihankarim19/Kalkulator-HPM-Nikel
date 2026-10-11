@@ -25,7 +25,7 @@ HPM (USD/wmt) = [ (%Ni × CF_Ni × HMA_Nikel)
 
 ## Corrective Factor (CF)
 
-### CF Nikel — dua rezim
+### CF Nikel - dua rezim
 
 | Rezim | Kadar Ni | Rumus CF Ni |
 |---|---|---|
@@ -142,9 +142,9 @@ Validasi ini dijalankan otomatis lewat `npm test` (lihat [`tests/hpm.test.js`](.
 
 ## Sumber
 
-- [Kementerian ESDM Ubah Formula HPM Nikel — nikel.co.id](https://nikel.co.id/2026/09/16/kementerian-esdm-ubah-formula-hpm-nikel-fe-co-dan-cr-kini-jadi-komponen-penentu-harga/)
-- [HPM Nikel Direvisi, APNI Soroti Valuasi Limonit — nikel.co.id](https://nikel.co.id/2026/09/16/hpm-nikel-direvisi-apni-soroti-valuasi-limonit-dan-penerimaan-negara/)
+- [Kementerian ESDM Ubah Formula HPM Nikel - nikel.co.id](https://nikel.co.id/2026/09/16/kementerian-esdm-ubah-formula-hpm-nikel-fe-co-dan-cr-kini-jadi-komponen-penentu-harga/)
+- [HPM Nikel Direvisi, APNI Soroti Valuasi Limonit - nikel.co.id](https://nikel.co.id/2026/09/16/hpm-nikel-direvisi-apni-soroti-valuasi-limonit-dan-penerimaan-negara/)
 - [SMM: Indonesia revises nickel ore HPM formula](https://news.metal.com/newscontent/104117799-smm-nickel-flash-newsindonesia-revises-nickel-ore-hpm-formula-12-ni-hpm-falls-45)
 - [SMM: HPM nickel second half of September 2026](https://news.metal.com/newscontent/104118082-smm-flash-news-indonesias-hpm-nickel-further-decreased-in-second-half-of-september)
 - [SMM: HMA nickel first period of October 2026](https://news.metal.com/newscontent/104143238-smm-flash-newsindonesias-hma-nickel-further-decreased-in-first-period-of-october)
-- [Harga Mineral Acuan — Ditjen Minerba ESDM](https://www.minerba.esdm.go.id/harga_acuan)
+- [Harga Mineral Acuan - Ditjen Minerba ESDM](https://www.minerba.esdm.go.id/harga_acuan)

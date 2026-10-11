@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="HPM Nikel">
-    <title>Kalkulator HPM Bijih Nikel — KEPMEN 363/2026</title>
+    <title>Kalkulator HPM Bijih Nikel - KEPMEN 363/2026</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -109,9 +109,9 @@
 
             <!-- Threshold Status -->
             <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
-                <span class="threshold-badge" id="badge-regime">—</span>
-                <span class="threshold-badge" id="badge-fe">—</span>
-                <span class="threshold-badge" id="badge-co">—</span>
+                <span class="threshold-badge" id="badge-regime">-</span>
+                <span class="threshold-badge" id="badge-fe">-</span>
+                <span class="threshold-badge" id="badge-co">-</span>
             </div>
             <div class="regime-note" id="regime-note">
                 <strong>Rezim kadar rendah (Ni ≤ 1,2%).</strong> Berdasarkan Kepmen 363/2026, CF Ni turun ke 14% pada Ni 1,2%
@@ -189,15 +189,15 @@
                 </div>
                 <div class="cf-row">
                     <span class="cf-label">Δ Kadar Ni vs Baseline</span>
-                    <span class="cf-value" id="cf-delta-ni">—</span>
+                    <span class="cf-value" id="cf-delta-ni">-</span>
                 </div>
                 <div class="cf-row">
                     <span class="cf-label">Δ CF Ni</span>
-                    <span class="cf-value" id="cf-delta-cf">—</span>
+                    <span class="cf-value" id="cf-delta-cf">-</span>
                 </div>
                 <div class="cf-row" style="border-top:1px solid rgba(8,98,164,0.15); padding-top:8px; margin-top:4px;">
                     <span class="cf-label" style="font-weight:600;">CF Bijih Nikel Aktual</span>
-                    <span class="cf-value" id="cf-aktual" style="font-size:16px;">—</span>
+                    <span class="cf-value" id="cf-aktual" style="font-size:16px;">-</span>
                 </div>
             </div>
 
@@ -237,28 +237,28 @@
             <div class="results-grid">
                 <div class="result-row">
                     <span class="result-label"><span class="icon">🟢</span> Komponen Nikel</span>
-                    <span class="result-value" id="res-komponen-ni">—</span>
+                    <span class="result-value" id="res-komponen-ni">-</span>
                 </div>
                 <div class="result-row">
                     <span class="result-label"><span class="icon">🔵</span> Komponen Besi (ikutan)</span>
-                    <span class="result-value" id="res-komponen-fe">—</span>
+                    <span class="result-value" id="res-komponen-fe">-</span>
                 </div>
                 <div class="result-row">
                     <span class="result-label"><span class="icon">🟣</span> Komponen Kobalt (ikutan)</span>
-                    <span class="result-value" id="res-komponen-co">—</span>
+                    <span class="result-value" id="res-komponen-co">-</span>
                 </div>
                 <div class="result-row">
                     <span class="result-label"><span class="icon">🟠</span> Komponen Krom (ikutan)</span>
-                    <span class="result-value" id="res-komponen-cr">—</span>
+                    <span class="result-value" id="res-komponen-cr">-</span>
                 </div>
                 <hr class="divider" style="margin:4px 0;">
                 <div class="result-row" style="background: rgba(8, 98, 164, 0.05); border-color: rgba(8, 98, 164, 0.15);">
                     <span class="result-label" style="font-weight:600;">Sub-total (DMT basis)</span>
-                    <span class="result-value" id="res-subtotal" style="color:var(--blue-700);">—</span>
+                    <span class="result-value" id="res-subtotal" style="color:var(--blue-700);">-</span>
                 </div>
                 <div class="result-row">
                     <span class="result-label">Faktor (1 - MC)</span>
-                    <span class="result-value" id="res-faktor-mc">—</span>
+                    <span class="result-value" id="res-faktor-mc">-</span>
                 </div>
             </div>
 
@@ -279,7 +279,7 @@
 
             <div style="font-size:12px; color:var(--gray-500); margin-bottom:12px;">
                 Rumus sebelumnya (KEPMEN 144/2026, perubahan pertama): struktur sama, namun CF Ni linear 30% @ Ni 1,6% untuk semua kadar
-                (<span id="cmp-cf-prev">—</span>) dan CF Kobalt 30% untuk semua kadar.
+                (<span id="cmp-cf-prev">-</span>) dan CF Kobalt 30% untuk semua kadar.
             </div>
 
             <div class="comparison-grid">
@@ -295,11 +295,11 @@
 
             <div class="selisih-row">
                 <span class="label">Selisih (USD/wmt)</span>
-                <span class="value" id="cmp-selisih">—</span>
+                <span class="value" id="cmp-selisih">-</span>
             </div>
             <div class="selisih-row" style="margin-top:8px; background: rgba(13, 114, 109, 0.06); border-color: rgba(13, 114, 109, 0.15);">
                 <span class="label">% Perubahan</span>
-                <span class="value" id="cmp-pct" style="color:var(--teal-900);">—</span>
+                <span class="value" id="cmp-pct" style="color:var(--teal-900);">-</span>
             </div>
         </section>
 
@@ -332,12 +332,12 @@
                 <div class="sens-kpis">
                     <div class="sens-kpi" id="kpi-up">
                         <div class="kpi-label">Ni naik 0,01%</div>
-                        <div class="kpi-value">—</div>
+                        <div class="kpi-value">-</div>
                         <div class="kpi-sub"></div>
                     </div>
                     <div class="sens-kpi" id="kpi-down">
                         <div class="kpi-label">Ni turun 0,01%</div>
-                        <div class="kpi-value">—</div>
+                        <div class="kpi-value">-</div>
                         <div class="kpi-sub"></div>
                     </div>
                 </div>
@@ -367,10 +367,10 @@
 
                 <div class="sens-mini-title">Kadar unsur lain yang menyertai</div>
                 <div class="sens-minis">
-                    <div class="sens-mini"><div class="mini-head"><span>Fe</span><b id="sens-mini-val-fe">—</b></div><div id="sens-mini-fe"></div></div>
-                    <div class="sens-mini"><div class="mini-head"><span>Co</span><b id="sens-mini-val-co">—</b></div><div id="sens-mini-co"></div></div>
-                    <div class="sens-mini"><div class="mini-head"><span>Cr</span><b id="sens-mini-val-cr">—</b></div><div id="sens-mini-cr"></div></div>
-                    <div class="sens-mini"><div class="mini-head"><span>MC</span><b id="sens-mini-val-mc">—</b></div><div id="sens-mini-mc"></div></div>
+                    <div class="sens-mini"><div class="mini-head"><span>Fe</span><b id="sens-mini-val-fe">-</b></div><div id="sens-mini-fe"></div></div>
+                    <div class="sens-mini"><div class="mini-head"><span>Co</span><b id="sens-mini-val-co">-</b></div><div id="sens-mini-co"></div></div>
+                    <div class="sens-mini"><div class="mini-head"><span>Cr</span><b id="sens-mini-val-cr">-</b></div><div id="sens-mini-cr"></div></div>
+                    <div class="sens-mini"><div class="mini-head"><span>MC</span><b id="sens-mini-val-mc">-</b></div><div id="sens-mini-mc"></div></div>
                 </div>
 
                 <details class="sens-details">
@@ -489,10 +489,10 @@
             const badgeRegime = document.getElementById('badge-regime');
             if (r.lowGrade) {
                 badgeRegime.className = 'threshold-badge regime low';
-                badgeRegime.textContent = '⚠ Ni ≤ 1.2% — Rezim kadar rendah';
+                badgeRegime.textContent = '⚠ Ni ≤ 1.2% - Rezim kadar rendah';
             } else {
                 badgeRegime.className = 'threshold-badge regime';
-                badgeRegime.textContent = 'Ni > 1.2% — Rezim normal';
+                badgeRegime.textContent = 'Ni > 1.2% - Rezim normal';
             }
             document.getElementById('regime-note').classList.toggle('show', r.lowGrade);
 
@@ -500,19 +500,19 @@
             const badgeFe = document.getElementById('badge-fe');
             if (r.feIncluded) {
                 badgeFe.className = 'threshold-badge included';
-                badgeFe.textContent = '✓ Fe ≤ 35% — Dihitung';
+                badgeFe.textContent = '✓ Fe ≤ 35% - Dihitung';
             } else {
                 badgeFe.className = 'threshold-badge excluded';
-                badgeFe.textContent = '✗ Fe > 35% — Tidak dihitung';
+                badgeFe.textContent = '✗ Fe > 35% - Tidak dihitung';
             }
 
             const badgeCo = document.getElementById('badge-co');
             if (r.coIncluded) {
                 badgeCo.className = 'threshold-badge included';
-                badgeCo.textContent = '✓ Co ≥ 0.05% — Dihitung (CF ' + HPM.formatPct(r.cfCo, 0) + ')';
+                badgeCo.textContent = '✓ Co ≥ 0.05% - Dihitung (CF ' + HPM.formatPct(r.cfCo, 0) + ')';
             } else {
                 badgeCo.className = 'threshold-badge excluded';
-                badgeCo.textContent = '✗ Co < 0.05% — Tidak dihitung';
+                badgeCo.textContent = '✗ Co < 0.05% - Tidak dihitung';
             }
 
             // CF detail
@@ -553,22 +553,22 @@
             ['cf-delta-ni', 'cf-delta-cf', 'cf-aktual',
              'res-komponen-ni', 'res-komponen-fe', 'res-komponen-co', 'res-komponen-cr',
              'res-subtotal', 'res-faktor-mc'].forEach(id => {
-                document.getElementById(id).textContent = '—';
+                document.getElementById(id).textContent = '-';
             });
             document.getElementById('res-hpm-final').textContent = '$0.00';
             document.getElementById('cmp-new').textContent = '$0.00';
             document.getElementById('cmp-old').textContent = '$0.00';
-            document.getElementById('cmp-selisih').textContent = '—';
-            document.getElementById('cmp-pct').textContent = '—';
-            document.getElementById('badge-regime').textContent = '—';
+            document.getElementById('cmp-selisih').textContent = '-';
+            document.getElementById('cmp-pct').textContent = '-';
+            document.getElementById('badge-regime').textContent = '-';
             document.getElementById('badge-regime').className = 'threshold-badge';
             document.getElementById('regime-note').classList.remove('show');
             document.getElementById('cf-baseline-label').textContent = 'CF Baseline (Ni 1.6%)';
             document.getElementById('cf-baseline-value').textContent = '30.00%';
             document.getElementById('cf-kobalt').textContent = '30%';
-            document.getElementById('cmp-cf-prev').textContent = '—';
-            document.getElementById('badge-fe').textContent = '—';
-            document.getElementById('badge-co').textContent = '—';
+            document.getElementById('cmp-cf-prev').textContent = '-';
+            document.getElementById('badge-fe').textContent = '-';
+            document.getElementById('badge-co').textContent = '-';
             document.getElementById('badge-fe').className = 'threshold-badge';
             document.getElementById('badge-co').className = 'threshold-badge';
         }

@@ -1,5 +1,5 @@
 // ============================================================
-// Unit test engine HPM — Kepmen ESDM 363.K/MB.01/MEM.B/2026
+// Unit test engine HPM - Kepmen ESDM 363.K/MB.01/MEM.B/2026
 // Jalankan: npm test   (atau: node --test tests/*.test.js)
 // ============================================================
 
@@ -21,14 +21,14 @@ const PERIODS = {
     'Okt-I 2026':  { hmaNikel: 16322.67, hmaKobalt: 41047.33, hmaBijihBesi: 1.45, hmaBijihKrom: 6.37 },
 };
 
-test('CF Ni — rezim normal (Ni > 1,2%)', () => {
+test('CF Ni - rezim normal (Ni > 1,2%)', () => {
     near(HPM.calculateCFNi(0.016), 0.30, 1e-9);
     near(HPM.calculateCFNi(0.018), 0.32, 1e-9);
     near(HPM.calculateCFNi(0.013), 0.27, 1e-9);
     near(HPM.calculateCFNi(0.0121), 0.261, 1e-9);
 });
 
-test('CF Ni — rezim kadar rendah (Ni ≤ 1,2%)', () => {
+test('CF Ni - rezim kadar rendah (Ni ≤ 1,2%)', () => {
     near(HPM.calculateCFNi(0.012), 0.14, 1e-9);
     near(HPM.calculateCFNi(0.011), 0.13, 1e-9);
     near(HPM.calculateCFNi(0.010), 0.12, 1e-9);

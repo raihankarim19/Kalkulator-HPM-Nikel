@@ -138,7 +138,7 @@ async function main() {
         kobalt: parsed.kobalt,
         bijihBesi: parsed.bijihBesi,
         bijihKrom: parsed.bijihKrom,
-        sumber: 'Ditjen Minerba ESDM — minerba.esdm.go.id/harga_acuan',
+        sumber: 'Ditjen Minerba ESDM - minerba.esdm.go.id/harga_acuan',
         sumberUrl: SOURCE_URL,
         diperbarui: today,
         metode: 'otomatis',

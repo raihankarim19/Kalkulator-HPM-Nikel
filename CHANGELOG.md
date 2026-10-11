@@ -2,17 +2,17 @@
 
 Semua perubahan penting pada kalkulator dicatat di sini.
 
-## [2.3.0] — 2026-10-11
+## [2.3.0] - 2026-10-11
 
 ### Ditambahkan
-- **Bagian 6 — Sensitivitas kadar Ni.** Grafik HPM untuk setiap langkah 0,01% Ni (rentang ±0,05%, ±0,10%, ±0,20%), dengan:
+- **Bagian 6 - Sensitivitas kadar Ni.** Grafik HPM untuk setiap langkah 0,01% Ni (rentang ±0,05%, ±0,10%, ±0,20%), dengan:
   - kadar Fe, Co, Cr, dan MC yang ikut berubah mengikuti pola geologis profil laterit (dua jalur profil, dipilih otomatis dari kadar Fe), atau dikunci tetap sebagai pembanding;
   - kartu nilai marginal "Ni naik/turun 0,01%";
   - penanda otomatis saat rentang melewati batas CF Ni 1,2%, ambang Fe 35%, atau ambang Co 0,05%;
   - grafik kecil Fe, Co, Cr, MC; tooltip yang bisa dijelajahi dengan keyboard; dan tabel data lengkap.
 - Metodologi dan referensi geologi di `docs/RUMUS.md`, serta 8 unit test baru untuk model sensitivitas.
 
-## [2.2.0] — 2026-10-11
+## [2.2.0] - 2026-10-11
 
 ### Diperbaiki
 - **Aplikasi bisa tersangkut di versi lama selamanya.** Service worker lama memakai cache-first, dan pembaruannya wajib mengunduh Google Fonts. Bila satu file itu gagal (mis. diblokir jaringan kantor), pembaruan batal, sehingga tombol Ambil HMA tetap menjalankan kode lama yang selalu gagal. Service worker baru memakai network-first, install-nya tidak bisa gagal, dan file pihak ketiga tidak lagi ikut di-cache.
@@ -22,7 +22,7 @@ Semua perubahan penting pada kalkulator dicatat di sini.
 - Sumber HMA berlapis: `hma.json` di situs → salinan di GitHub raw / jsDelivr → halaman ESDM via proxy → HMA bawaan aplikasi. Tombol Ambil HMA tidak lagi berakhir dengan error.
 - Nomor versi aplikasi di footer, untuk memastikan versi yang sedang dipakai.
 
-## [2.1.0] — 2026-10-11
+## [2.1.0] - 2026-10-11
 
 ### Diperbaiki
 - Tombol **Ambil HMA** selalu gagal karena situs minerba.esdm.go.id sedang perbaikan dan proxy CORS publik tidak andal. HMA kini dibaca dari `hma.json` di repo sendiri, jadi selesai dalam sekejap tanpa proxy.
@@ -35,7 +35,7 @@ Semua perubahan penting pada kalkulator dicatat di sini.
 - Periode, dasar hukum, dan sumber HMA ditampilkan di bawah isian HMA.
 - HMA terbaru terisi otomatis saat aplikasi pertama kali dibuka.
 
-## [2.0.0] — 2026-10-11
+## [2.0.0] - 2026-10-11
 
 Pembaruan ke **Kepmen ESDM No. 363.K/MB.01/MEM.B/2026** (berlaku 15 September 2026).
 

@@ -1,5 +1,5 @@
 // ============================================================
-// Sensitivitas Kadar Ni — grafik SVG tanpa dependensi
+// Sensitivitas Kadar Ni - grafik SVG tanpa dependensi
 // Bergantung pada HPM.sensitivity() di calculator.js
 // ============================================================
 
@@ -256,7 +256,7 @@ const Sens = (() => {
         const box = document.getElementById(id);
         const v = box.querySelector('.kpi-value');
         const sub = box.querySelector('.kpi-sub');
-        if (delta === null || !row) { v.textContent = '—'; sub.textContent = ''; return; }
+        if (delta === null || !row) { v.textContent = '-'; sub.textContent = ''; return; }
         v.textContent = signedUsd(delta);
         box.classList.toggle('is-jump', Math.abs(delta) >= 5);
         sub.textContent = `HPM ${usd(row.hpm)}/wmt pada Ni ${pct(row.ni)}`;
@@ -314,7 +314,7 @@ const Sens = (() => {
             const tr = document.createElement('tr');
             if (Math.abs(r.ni - s.ni0) < 1e-9) tr.className = 'is-base';
             [pct(r.ni), pct(r.fe), pct(r.co, 3), pct(r.cr), pct(r.mc), pct(r.cfNi * 100), usd(r.hpm),
-             Math.abs(r.delta) < 0.005 ? '—' : signedUsd(r.delta)].forEach(v => {
+             Math.abs(r.delta) < 0.005 ? '-' : signedUsd(r.delta)].forEach(v => {
                 const td = document.createElement('td');
                 td.textContent = v;
                 tr.appendChild(td);

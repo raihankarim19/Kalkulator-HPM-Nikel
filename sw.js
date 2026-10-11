@@ -1,5 +1,5 @@
 // ============================================================
-// Service Worker — HPM Bijih Nikel Calculator PWA
+// Service Worker - HPM Bijih Nikel Calculator PWA
 //
 // Strategi: NETWORK-FIRST untuk semua file milik situs ini.
 // Selalu ambil versi terbaru dari server; cache hanya dipakai saat offline.
