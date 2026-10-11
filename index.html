@@ -12,7 +12,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=6">
+    <link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
 
@@ -308,6 +308,7 @@
     <!-- Credit -->
     <footer style="text-align:center; padding:20px 16px 12px; font-size:12px; color:var(--gray-500); font-weight:500;">
         Kalkulator ini dibuat oleh <strong style="color:var(--blue-900);">Raihan Karim</strong>
+        <span id="app-version" style="opacity:0.6; margin-left:6px;"></span>
     </footer>
 
     <!-- Toast -->
@@ -323,7 +324,7 @@
         <button class="btn btn-secondary" onclick="dismissInstall()" style="padding:8px;">✕</button>
     </div>
 
-    <script src="calculator.js?v=6"></script>
+    <script src="calculator.js?v=7"></script>
     <script>
         // ============================================================
         // UI Controller
@@ -475,8 +476,12 @@
             try {
                 const hma = await HPM.fetchHMA();
                 applyHMA(hma);
-                try { localStorage.setItem('hma_cache', JSON.stringify(hma)); } catch (e) { /* ignore */ }
-                showToast('✅ HMA diperbarui: ' + (hma.periode || 'terbaru'), 'success');
+                if (hma.fallback) {
+                    showToast('⚠️ Tidak terhubung ke server. Memakai HMA bawaan: ' + hma.periode, 'error');
+                } else {
+                    try { localStorage.setItem('hma_cache', JSON.stringify(hma)); } catch (e) { /* ignore */ }
+                    showToast('✅ HMA diperbarui: ' + (hma.periode || 'terbaru'), 'success');
+                }
                 onInputChange();
             } catch (err) {
                 showToast('❌ ' + err.message, 'error');
@@ -560,6 +565,7 @@
                 applyHMA(HPM.defaultHMA);
                 HPM.fetchHMA()
                     .then(hma => {
+                        if (hma.fallback) return;
                         applyHMA(hma);
                         try { localStorage.setItem('hma_cache', JSON.stringify(hma)); } catch (e) { /* ignore */ }
                         onInputChange();
@@ -567,10 +573,22 @@
                     .catch(() => { /* tetap pakai default */ });
             }
 
-            // Register service worker
+            // Versi aplikasi di footer
+            document.getElementById('app-version').textContent = 'v' + HPM.VERSION;
+
+            // Service worker: selalu cek versi terbaru, dan muat ulang sekali
+            // begitu versi baru mengambil alih halaman
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('SW registered:', reg.scope))
+                const hadController = !!navigator.serviceWorker.controller;
+                let reloaded = false;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (hadController && !reloaded) {
+                        reloaded = true;
+                        window.location.reload();
+                    }
+                });
+                navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+                    .then(reg => reg.update())
                     .catch(err => console.log('SW error:', err));
             }
         }

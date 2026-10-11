@@ -55,8 +55,12 @@ const HPM = (() => {
         kobalt: 41047.33,
         bijihKrom: 6.37,
         lastUpdated: null,
-        periode: 'Periode I Oktober 2026'
+        periode: 'Periode I Oktober 2026',
+        dasarHukum: 'Kepmen ESDM No. 384.K/MB.01/MEM.B/2026',
+        sumber: 'data bawaan aplikasi'
     };
+
+    const VERSION = '2.2.0';
 
     /**
      * Convert percentage input to decimal form.
@@ -229,34 +233,51 @@ const HPM = (() => {
         }
     }
 
+    // Salinan hma.json di luar GitHub Pages (CORS terbuka), dipakai bila
+    // file di situs sendiri tidak terjangkau
+    const HMA_MIRRORS = [
+        'https://raw.githubusercontent.com/raihankarim19/Kalkulator-HPM-Nikel/main/hma.json',
+        'https://cdn.jsdelivr.net/gh/raihankarim19/Kalkulator-HPM-Nikel@main/hma.json',
+    ];
+
+    async function fetchJSON(url, ms) {
+        const res = await fetchWithTimeout(url, ms, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (!isValidHMA(data)) throw new Error('Data HMA tidak valid');
+        return data;
+    }
+
     /**
-     * Ambil HMA terbaru.
-     *  1. hma.json di repo (same-origin, diperbarui otomatis oleh GitHub Actions)
-     *  2. Cadangan: halaman HMA ESDM lewat CORS proxy publik (paralel, yang
-     *     pertama berhasil dipakai)
+     * Ambil HMA terbaru. Urutan sumber:
+     *  1. hma.json di situs ini (diperbarui otomatis oleh GitHub Actions)
+     *  2. Salinan hma.json di GitHub raw / jsDelivr
+     *  3. Halaman HMA ESDM lewat CORS proxy publik
+     *  4. HMA bawaan aplikasi (ditandai fallback: true)
+     * Tidak pernah melempar error; pemanggil cukup memeriksa `fallback`.
      */
     async function fetchHMA() {
-        // 1) hma.json — andal, tanpa proxy
+        // 1) Situs sendiri
         try {
-            const res = await fetchWithTimeout('hma.json?t=' + Date.now(), 8000, { cache: 'no-store' });
-            if (res.ok) {
-                const data = await res.json();
-                if (isValidHMA(data)) {
-                    return { ...data, lastUpdated: new Date().toISOString(), via: 'repo' };
-                }
-            }
-        } catch (e) { /* lanjut ke cadangan */ }
+            const data = await fetchJSON('hma.json?t=' + Date.now(), 6000);
+            return { ...data, lastUpdated: new Date().toISOString(), via: 'repo' };
+        } catch (e) { /* lanjut */ }
 
-        // 2) Cadangan: ESDM via proxy, dijalankan paralel
+        // 2) Mirror (paralel, ambil yang pertama berhasil)
+        try {
+            const data = await Promise.any(HMA_MIRRORS.map(u => fetchJSON(u + '?t=' + Date.now(), 6000)));
+            return { ...data, lastUpdated: new Date().toISOString(), via: 'mirror' };
+        } catch (e) { /* lanjut */ }
+
+        // 3) ESDM via proxy (paralel)
         const targetUrl = 'https://www.minerba.esdm.go.id/harga_acuan';
         const proxies = [
             `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
             `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
             `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`,
         ];
-
         const attempt = async (proxyUrl) => {
-            const res = await fetchWithTimeout(proxyUrl, 10000, {
+            const res = await fetchWithTimeout(proxyUrl, 8000, {
                 headers: { 'Accept': 'text/html,application/xhtml+xml,*/*' }
             });
             if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -264,12 +285,12 @@ const HPM = (() => {
             if (!parsed) throw new Error('Tabel HMA tidak ditemukan');
             return parsed;
         };
-
         try {
             return await Promise.any(proxies.map(attempt));
-        } catch (e) {
-            throw new Error('Gagal mengambil data HMA. Silakan input manual.');
-        }
+        } catch (e) { /* lanjut */ }
+
+        // 4) Data bawaan
+        return { ...defaultHMA, fallback: true, via: 'bawaan' };
     }
 
     /**
@@ -334,6 +355,7 @@ const HPM = (() => {
     }
 
     return {
+        VERSION,
         REGS,
         PRESETS,
         defaultHMA,

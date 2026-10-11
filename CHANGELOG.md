@@ -2,6 +2,16 @@
 
 Semua perubahan penting pada kalkulator dicatat di sini.
 
+## [2.2.0] — 2026-10-11
+
+### Diperbaiki
+- **Aplikasi bisa tersangkut di versi lama selamanya.** Service worker lama memakai cache-first, dan pembaruannya wajib mengunduh Google Fonts. Bila satu file itu gagal (mis. diblokir jaringan kantor), pembaruan batal, sehingga tombol Ambil HMA tetap menjalankan kode lama yang selalu gagal. Service worker baru memakai network-first, install-nya tidak bisa gagal, dan file pihak ketiga tidak lagi ikut di-cache.
+- Halaman otomatis dimuat ulang sekali saat versi baru aktif.
+
+### Ditambahkan
+- Sumber HMA berlapis: `hma.json` di situs → salinan di GitHub raw / jsDelivr → halaman ESDM via proxy → HMA bawaan aplikasi. Tombol Ambil HMA tidak lagi berakhir dengan error.
+- Nomor versi aplikasi di footer, untuk memastikan versi yang sedang dipakai.
+
 ## [2.1.0] — 2026-10-11
 
 ### Diperbaiki

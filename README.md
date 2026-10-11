@@ -95,7 +95,7 @@ Browser tidak bisa membaca situs ESDM secara langsung (diblokir CORS), dan proxy
 
 1. **GitHub Actions** ([`update-hma.yml`](.github/workflows/update-hma.yml)) menjalankan [`scripts/update-hma.mjs`](scripts/update-hma.mjs) setiap hari pukul 08.17 WIB. Script mengambil tabel HMA dari minerba.esdm.go.id di sisi server.
 2. `hma.json` **hanya ditulis bila keempat HMA ditemukan dan lolos uji kewajaran**. Bila situs ESDM down, sedang perbaikan, atau strukturnya berubah, data lama dibiarkan.
-3. Tombol **🔄 Ambil HMA** membaca `hma.json`. Proxy ke situs ESDM hanya dipakai sebagai cadangan terakhir.
+3. Tombol **🔄 Ambil HMA** membaca `hma.json`. Bila gagal, aplikasi mencoba salinannya di GitHub raw dan jsDelivr, lalu situs ESDM via proxy, dan terakhir HMA bawaan aplikasi.
 
 **Memperbarui manual:** edit `hma.json` langsung di GitHub (ikon ✏️), ganti angka dan `periode`, lalu commit. Workflow juga bisa dijalankan kapan saja dari tab **Actions → Perbarui HMA → Run workflow**.
 
