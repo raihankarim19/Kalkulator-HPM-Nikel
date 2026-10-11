@@ -1,25 +1,36 @@
 // ============================================================
-// HPM Bijih Nikel Calculator — KEPMEN ESDM No. 144/2026
+// HPM Bijih Nikel Calculator — KEPMEN ESDM No. 363.K/MB.01/MEM.B/2026
+// (Perubahan Kedua atas Kepmen ESDM No. 268.K/MB.01/MEM.B/2025,
+//  berlaku efektif 15 September 2026)
 // Core Calculation Engine
 // ============================================================
 
 const HPM = (() => {
     // --- Regulatory Constants ---
     const REGS = {
-        // New formula (KEPMEN 144/2026)
-        CF_NI_BASELINE: 0.30,       // 30% at Ni = 1.6%
-        BASELINE_NI: 0.016,          // 1.6% Ni
-        CF_SENSITIVITY: 0.01,        // 1% per 0.1% Ni
-        CF_FE: 0.30,                 // 30% fixed
-        CF_CO: 0.30,                 // 30% fixed
-        CF_CR: 0.10,                 // 10% fixed
-        THRESHOLD_FE: 0.35,          // Fe ≤ 35%
-        THRESHOLD_CO: 0.0005,        // Co ≥ 0.05%
+        // ---- Formula berlaku: KEPMEN 363/2026 ----
+        // Ni > 1,2%  : CF = 30% pada Ni 1,6%, ±1% per ±0,1% Ni
+        // Ni ≤ 1,2%  : CF = 14% pada Ni 1,2%, turun 1% per penurunan 0,1% Ni
+        CF_NI_BASELINE: 0.30,        // 30% pada Ni = 1,6%
+        BASELINE_NI: 0.016,          // 1,6% Ni
+        LOW_GRADE_NI: 0.012,         // batas kadar rendah: Ni ≤ 1,2%
+        CF_NI_LOW_GRADE: 0.14,       // 14% pada Ni = 1,2%
+        CF_SENSITIVITY: 0.01,        // 1% per 0,1% Ni
+        CF_FE: 0.30,                 // 30% tetap
+        CF_CO: 0.30,                 // 30% bila Ni > 1,2%
+        CF_CO_LOW_GRADE: 0.17,       // 17% bila Ni ≤ 1,2%
+        CF_CR: 0.10,                 // 10% tetap
+        THRESHOLD_FE: 0.35,          // Fe dihitung bila ≤ 35%
+        THRESHOLD_CO: 0.0005,        // Co dihitung bila ≥ 0,05%
 
-        // Old formula (KEPMEN 268/2025)
-        CF_NI_BASELINE_OLD: 0.20,    // 20% at Ni = 1.9%
-        BASELINE_NI_OLD: 0.019,      // 1.9% Ni
+        // ---- Formula sebelumnya: KEPMEN 144/2026 (perubahan pertama) ----
+        // CF Ni linear 30% @1,6% untuk semua kadar; CF Co 30% untuk semua kadar
+        CF_CO_PREV: 0.30,
     };
+
+    // Tolerance for floating-point comparison at the 1,2% boundary
+    // (mis. input 1.2 → 0.012 bisa jadi 0.012000000000000002)
+    const EPS = 1e-9;
 
     // --- Ore Type Presets ---
     const PRESETS = {
@@ -27,26 +38,29 @@ const HPM = (() => {
             ni: 1.35, fe: 40.50, co: 0.15, cr: 2.24, mc: 36.69,
             label: 'Limonit'
         },
+        lowgrade: {
+            ni: 1.20, fe: 45.00, co: 0.10, cr: 2.00, mc: 35.00,
+            label: 'Limonit Kadar Rendah'
+        },
         saprolite: {
             ni: 1.81, fe: 11.79, co: 0.03, cr: 0.77, mc: 35.00,
             label: 'Saprolit'
         }
     };
 
-    // --- Default HMA values (will be updated by fetch) ---
+    // --- Default HMA values: Periode I Oktober 2026 (will be updated by fetch) ---
     let defaultHMA = {
-        nikel: 17092.67,
-        bijihBesi: 1.55,
-        kobalt: 55848,
+        nikel: 16322.67,
+        bijihBesi: 1.45,
+        kobalt: 41047.33,
         bijihKrom: 6.37,
         lastUpdated: null,
-        periode: null
+        periode: 'Periode I Oktober 2026'
     };
 
     /**
      * Convert percentage input to decimal form.
      * User always enters in percent (e.g., 1.35 means 1.35% → 0.0135)
-     * ALL inputs are percentage form, so always divide by 100.
      */
     function toDecimal(val) {
         const v = parseFloat(val);
@@ -54,43 +68,76 @@ const HPM = (() => {
         return v / 100;
     }
 
+    /** Ni ≤ 1,2% → masuk rezim kadar rendah (Kepmen 363/2026) */
+    function isLowGrade(niDecimal) {
+        return niDecimal <= REGS.LOW_GRADE_NI + EPS;
+    }
+
     /**
-     * Calculate CF Bijih Nikel Aktual (new formula)
-     * CF = MAX(0, CF_baseline + ((Ni - baseline) / 0.001) × sensitivity)
+     * CF Bijih Nikel Aktual — KEPMEN 363/2026
+     *   Ni > 1,2% : CF = 30% + ((Ni − 1,6%) / 0,1%) × 1%
+     *   Ni ≤ 1,2% : CF = 14% + ((Ni − 1,2%) / 0,1%) × 1%
      */
     function calculateCFNi(niDecimal) {
+        let cf;
+        if (isLowGrade(niDecimal)) {
+            cf = REGS.CF_NI_LOW_GRADE
+                + ((niDecimal - REGS.LOW_GRADE_NI) / 0.001) * REGS.CF_SENSITIVITY;
+        } else {
+            cf = REGS.CF_NI_BASELINE
+                + ((niDecimal - REGS.BASELINE_NI) / 0.001) * REGS.CF_SENSITIVITY;
+        }
+        return Math.max(0, cf);
+    }
+
+    /**
+     * CF Bijih Nikel — KEPMEN 144/2026 (sebelumnya): linear 30% @1,6% untuk semua kadar
+     */
+    function calculateCFNiPrev(niDecimal) {
         const deltaCF = ((niDecimal - REGS.BASELINE_NI) / 0.001) * REGS.CF_SENSITIVITY;
         return Math.max(0, REGS.CF_NI_BASELINE + deltaCF);
     }
 
-    /**
-     * Calculate CF Bijih Nikel Aktual (old formula)
-     */
-    function calculateCFNiOld(niDecimal) {
-        const deltaCF = ((niDecimal - REGS.BASELINE_NI_OLD) / 0.001) * REGS.CF_SENSITIVITY;
-        return Math.max(0, REGS.CF_NI_BASELINE_OLD + deltaCF);
+    /** CF Kobalt ikutan — KEPMEN 363/2026: 30% (Ni > 1,2%) atau 17% (Ni ≤ 1,2%) */
+    function calculateCFCo(niDecimal) {
+        return isLowGrade(niDecimal) ? REGS.CF_CO_LOW_GRADE : REGS.CF_CO;
     }
 
-    /**
-     * Check Fe threshold: included when Fe ≤ 35%
-     */
+    /** Fe threshold: dihitung bila Fe ≤ 35% */
     function checkFe(feDecimal) {
-        return feDecimal <= REGS.THRESHOLD_FE;
+        return feDecimal <= REGS.THRESHOLD_FE + EPS;
     }
 
-    /**
-     * Check Co threshold: included when Co ≥ 0.05%
-     */
+    /** Co threshold: dihitung bila Co ≥ 0,05% */
     function checkCo(coDecimal) {
-        return coDecimal >= REGS.THRESHOLD_CO;
+        return coDecimal >= REGS.THRESHOLD_CO - EPS;
     }
 
     /**
-     * Main HPM calculation — KEPMEN 144/2026
-     * HPM = [(% Ni × CF_Ni × HMA_Ni)
-     *      + (% Fe × CF_Fe × HMA_BijihBesi × 100)
-     *      + (% Co × CF_Co × HMA_Co)
-     *      + (% Cr × CF_Cr × HMA_BijihKrom × 100)] × (1 - MC)
+     * Generic HPM builder (shared by current & previous formula)
+     * HPM = [(%Ni × CF_Ni × HMA_Ni)
+     *      + (%Fe × CF_Fe × HMA_BijihBesi × 100)
+     *      + (%Co × CF_Co × HMA_Co)
+     *      + (%Cr × CF_Cr × HMA_BijihKrom × 100)] × (1 − MC)
+     */
+    function buildHPM({ ni, fe, co, cr, mc, hmaNi, hmaFe, hmaCo, hmaCr, cfNi, cfCo }) {
+        const feIncluded = checkFe(fe);
+        const coIncluded = checkCo(co);
+
+        const komponenNi = ni * cfNi * hmaNi;
+        const komponenFe = feIncluded ? fe * REGS.CF_FE * hmaFe * 100 : 0;
+        const komponenCo = coIncluded ? co * cfCo * hmaCo : 0;
+        const komponenCr = cr * REGS.CF_CR * hmaCr * 100;
+
+        const subTotal = komponenNi + komponenFe + komponenCo + komponenCr;
+        const faktorMC = 1 - mc;
+        const hpm = subTotal * faktorMC;
+
+        return { feIncluded, coIncluded, komponenNi, komponenFe, komponenCo, komponenCr, subTotal, faktorMC, hpm };
+    }
+
+    /**
+     * Main HPM calculation — KEPMEN 363/2026, with comparison to KEPMEN 144/2026
      */
     function calculate(inputs) {
         const ni = toDecimal(inputs.ni);
@@ -104,57 +151,58 @@ const HPM = (() => {
         const hmaCo = parseFloat(inputs.hmaKobalt) || 0;
         const hmaCr = parseFloat(inputs.hmaBijihKrom) || 0;
 
-        // CF calculations
+        const base = { ni, fe, co, cr, mc, hmaNi, hmaFe, hmaCo, hmaCr };
+
+        // --- Current: KEPMEN 363/2026 ---
+        const lowGrade = isLowGrade(ni);
         const cfNi = calculateCFNi(ni);
-        const feIncluded = checkFe(fe);
-        const coIncluded = checkCo(co);
+        const cfCo = calculateCFCo(ni);
+        const cur = buildHPM({ ...base, cfNi, cfCo });
 
-        // Component calculations (before MC)
-        const komponenNi = ni * cfNi * hmaNi;
-        const komponenFe = feIncluded ? fe * REGS.CF_FE * hmaFe * 100 : 0;
-        const komponenCo = coIncluded ? co * REGS.CF_CO * hmaCo : 0;
-        const komponenCr = cr * REGS.CF_CR * hmaCr * 100;
+        const refNi = lowGrade ? REGS.LOW_GRADE_NI : REGS.BASELINE_NI;
+        const refCF = lowGrade ? REGS.CF_NI_LOW_GRADE : REGS.CF_NI_BASELINE;
+        const deltaNi = ni - refNi;
+        const deltaCFNi = (deltaNi / 0.001) * REGS.CF_SENSITIVITY;
 
-        const subTotal = komponenNi + komponenFe + komponenCo + komponenCr;
-        const faktorMC = 1 - mc;
-        const hpm = subTotal * faktorMC;
+        // --- Previous: KEPMEN 144/2026 ---
+        const cfNiPrev = calculateCFNiPrev(ni);
+        const cfCoPrev = REGS.CF_CO_PREV;
+        const prev = buildHPM({ ...base, cfNi: cfNiPrev, cfCo: cfCoPrev });
 
-        // Old formula comparison
-        const cfNiOld = calculateCFNiOld(ni);
-        const hpmOld = ni * cfNiOld * hmaNi * faktorMC;
-        const selisih = hpm - hpmOld;
-        const pctKenaikan = hpmOld !== 0 ? (selisih / hpmOld) : 0;
+        const selisih = cur.hpm - prev.hpm;
+        const pctPerubahan = prev.hpm !== 0 ? (selisih / prev.hpm) : 0;
 
         return {
             // Inputs
             ni, fe, co, cr, mc,
             hmaNi, hmaFe, hmaCo, hmaCr,
 
-            // CF
-            cfNi,
-            deltaNi: ni - REGS.BASELINE_NI,
-            deltaCFNi: ((ni - REGS.BASELINE_NI) / 0.001) * REGS.CF_SENSITIVITY,
+            // Regime & CF
+            lowGrade,
+            refNi, refCF,
+            cfNi, cfCo,
+            deltaNi, deltaCFNi,
 
             // Thresholds
-            feIncluded,
-            coIncluded,
+            feIncluded: cur.feIncluded,
+            coIncluded: cur.coIncluded,
 
             // Components (DMT basis)
-            komponenNi,
-            komponenFe,
-            komponenCo,
-            komponenCr,
-            subTotal,
+            komponenNi: cur.komponenNi,
+            komponenFe: cur.komponenFe,
+            komponenCo: cur.komponenCo,
+            komponenCr: cur.komponenCr,
+            subTotal: cur.subTotal,
 
             // Final HPM (WMT)
-            faktorMC,
-            hpm,
+            faktorMC: cur.faktorMC,
+            hpm: cur.hpm,
 
-            // Old formula comparison
-            cfNiOld,
-            hpmOld,
+            // Previous formula comparison (KEPMEN 144/2026)
+            cfNiPrev, cfCoPrev,
+            hpmPrev: prev.hpm,
             selisih,
-            pctKenaikan
+            pctPerubahan
         };
     }
 
@@ -173,7 +221,6 @@ const HPM = (() => {
         ];
 
         let html = null;
-        let lastError = null;
 
         for (const proxyUrl of proxies) {
             try {
@@ -204,7 +251,6 @@ const HPM = (() => {
                     }
                 }
             } catch (e) {
-                lastError = e;
                 continue;
             }
         }
@@ -227,8 +273,8 @@ const HPM = (() => {
 
         let result = { ...defaultHMA };
         result.lastUpdated = new Date().toISOString();
+        result.periode = null;
 
-        // Find all tables
         const tables = doc.querySelectorAll('table');
 
         for (const table of tables) {
@@ -244,25 +290,16 @@ const HPM = (() => {
                 let latestValue = null;
                 for (let i = cells.length - 1; i >= 1; i--) {
                     let cellText = (cells[i]?.textContent || '').trim();
-                    // Skip empty cells or non-numeric text
                     if (!cellText || !/\d/.test(cellText)) continue;
 
-                    // Detect number format:
-                    // US format:  16,933.57  (comma=thousands, period=decimal)
-                    // ID format:  16.933,57  (period=thousands, comma=decimal)
-                    // Plain:      16933.57 or 16933
+                    // US format: 16,933.57 | ID format: 16.933,57 | Plain: 16933.57
                     const lastComma = cellText.lastIndexOf(',');
                     const lastPeriod = cellText.lastIndexOf('.');
 
                     let numStr;
                     if (lastComma > lastPeriod) {
-                        // ID format: period is thousands, comma is decimal
                         numStr = cellText.replace(/\./g, '').replace(',', '.');
-                    } else if (lastPeriod > lastComma) {
-                        // US format: comma is thousands, period is decimal
-                        numStr = cellText.replace(/,/g, '');
                     } else {
-                        // No separators or equal position — try direct parse
                         numStr = cellText.replace(/,/g, '');
                     }
 
@@ -275,7 +312,6 @@ const HPM = (() => {
 
                 if (latestValue === null) continue;
 
-                // Match mineral names (support various formats from ESDM)
                 if ((labelLower.includes('nikel') || labelLower.includes('nickel'))
                     && !labelLower.includes('bijih nikel')
                     && !labelLower.includes('ore')) {
@@ -297,9 +333,7 @@ const HPM = (() => {
         return result;
     }
 
-    /**
-     * Format number as USD currency
-     */
+    /** Format number as USD currency */
     function formatUSD(value, decimals = 2) {
         return new Intl.NumberFormat('en-US', {
             minimumFractionDigits: decimals,
@@ -307,9 +341,7 @@ const HPM = (() => {
         }).format(value);
     }
 
-    /**
-     * Format as percentage
-     */
+    /** Format as percentage */
     function formatPct(value, decimals = 2) {
         return (value * 100).toFixed(decimals) + '%';
     }
@@ -319,8 +351,10 @@ const HPM = (() => {
         PRESETS,
         defaultHMA,
         toDecimal,
+        isLowGrade,
         calculateCFNi,
-        calculateCFNiOld,
+        calculateCFNiPrev,
+        calculateCFCo,
         checkFe,
         checkCo,
         calculate,
@@ -329,3 +363,8 @@ const HPM = (() => {
         formatPct
     };
 })();
+
+// Allow use from Node (tests) without affecting the browser
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = HPM;
+}

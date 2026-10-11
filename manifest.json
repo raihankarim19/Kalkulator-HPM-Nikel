@@ -1,7 +1,7 @@
 {
-    "name": "Kalkulator HPM Bijih Nikel - KEPMEN 144/2026",
+    "name": "Kalkulator HPM Bijih Nikel - KEPMEN 363/2026",
     "short_name": "HPM Nikel",
-    "description": "Kalkulator Harga Patokan Mineral Bijih Nikel sesuai KEPMEN ESDM No. 144 Tahun 2026",
+    "description": "Kalkulator Harga Patokan Mineral Bijih Nikel sesuai KEPMEN ESDM No. 363.K/MB.01/MEM.B/2026",
     "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#ffffff",

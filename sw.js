@@ -2,7 +2,7 @@
 // Service Worker — HPM Bijih Nikel Calculator PWA
 // ============================================================
 
-const CACHE_NAME = 'hpm-nikel-v3';
+const CACHE_NAME = 'hpm-nikel-v4';
 const ASSETS = [
     './',
     './index.html',

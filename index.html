@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Kalkulator HPM Bijih Nikel berdasarkan KEPMEN ESDM No. 144 Tahun 2026. Hitung harga patokan mineral dengan data HMA terkini.">
+    <meta name="description" content="Kalkulator HPM Bijih Nikel berdasarkan KEPMEN ESDM No. 363.K/MB.01/MEM.B/2026 (berlaku 15 September 2026). Hitung harga patokan mineral dengan data HMA terkini.">
     <meta name="theme-color" content="#163254">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="HPM Nikel">
-    <title>Kalkulator HPM Bijih Nikel — KEPMEN 144/2026</title>
+    <title>Kalkulator HPM Bijih Nikel — KEPMEN 363/2026</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=4">
+    <link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
 
@@ -23,7 +23,7 @@
                 <img src="logo.png" alt="HPM Nickel Calculator" class="header-icon" style="object-fit:cover;">
                 <div class="header-title">
                     <h1>Kalkulator HPM Bijih Nikel</h1>
-                    <p>KEPMEN ESDM No. 144 Tahun 2026</p>
+                    <p>KEPMEN ESDM No. 363.K/MB.01/MEM.B/2026 · berlaku 15 Sep 2026</p>
                 </div>
             </div>
             <div class="header-actions">
@@ -51,7 +51,11 @@
                 </button>
                 <button type="button" class="ore-btn" id="btn-limonite" onclick="selectOre('limonite')">
                     <span class="ore-label">🟠 Limonit</span>
-                    <span class="ore-desc">Ni < 1.5%</span>
+                    <span class="ore-desc">1.2% < Ni < 1.5%</span>
+                </button>
+                <button type="button" class="ore-btn" id="btn-lowgrade" onclick="selectOre('lowgrade')">
+                    <span class="ore-label">🟤 Limonit LG</span>
+                    <span class="ore-desc">Ni ≤ 1.2%</span>
                 </button>
                 <button type="button" class="ore-btn active" id="btn-custom" onclick="selectOre('custom')">
                     <span class="ore-label">✏️ Custom</span>
@@ -105,8 +109,13 @@
 
             <!-- Threshold Status -->
             <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+                <span class="threshold-badge" id="badge-regime">—</span>
                 <span class="threshold-badge" id="badge-fe">—</span>
                 <span class="threshold-badge" id="badge-co">—</span>
+            </div>
+            <div class="regime-note" id="regime-note">
+                <strong>Rezim kadar rendah (Ni ≤ 1,2%).</strong> Berdasarkan Kepmen 363/2026, CF Ni turun ke 14% pada Ni 1,2%
+                (dari 26% di rumus sebelumnya) dan CF Kobalt ikutan menjadi 17% (dari 30%).
             </div>
         </section>
 
@@ -135,7 +144,7 @@
                         HMA Nikel <span class="unit">USD/dmt</span>
                     </label>
                     <input type="number" id="input-hma-nikel" class="input-field"
-                           placeholder="17092.67" step="0.01" min="0"
+                           placeholder="16322.67" step="0.01" min="0"
                            oninput="onInputChange()">
                 </div>
                 <div class="input-group">
@@ -143,7 +152,7 @@
                         HMA Bijih Besi <span class="unit">USD/dmt</span>
                     </label>
                     <input type="number" id="input-hma-bijihbesi" class="input-field"
-                           placeholder="1.55" step="0.01" min="0"
+                           placeholder="1.45" step="0.01" min="0"
                            oninput="onInputChange()">
                 </div>
                 <div class="input-group">
@@ -151,7 +160,7 @@
                         HMA Kobalt <span class="unit">USD/dmt</span>
                     </label>
                     <input type="number" id="input-hma-kobalt" class="input-field"
-                           placeholder="55848" step="0.01" min="0"
+                           placeholder="41047.33" step="0.01" min="0"
                            oninput="onInputChange()">
                 </div>
                 <div class="input-group">
@@ -174,8 +183,8 @@
 
             <div class="cf-detail">
                 <div class="cf-row">
-                    <span class="cf-label">CF Baseline (Ni 1.6%)</span>
-                    <span class="cf-value">30.00%</span>
+                    <span class="cf-label" id="cf-baseline-label">CF Baseline (Ni 1.6%)</span>
+                    <span class="cf-value" id="cf-baseline-value">30.00%</span>
                 </div>
                 <div class="cf-row">
                     <span class="cf-label">Δ Kadar Ni vs Baseline</span>
@@ -191,6 +200,11 @@
                 </div>
             </div>
 
+            <div class="formula-info" style="margin-bottom:12px;">
+                Ni &gt; 1,2%: CF = 30% + ((Ni − 1,6%) ÷ 0,1%) × 1% &nbsp;·&nbsp; CF Co = 30%<br>
+                Ni ≤ 1,2%: CF = 14% + ((Ni − 1,2%) ÷ 0,1%) × 1% &nbsp;·&nbsp; CF Co = 17%
+            </div>
+
             <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
                 <div class="cf-detail" style="text-align:center;">
                     <div style="font-size:11px; color:var(--gray-500); margin-bottom:2px;">CF Besi</div>
@@ -198,7 +212,7 @@
                 </div>
                 <div class="cf-detail" style="text-align:center;">
                     <div style="font-size:11px; color:var(--gray-500); margin-bottom:2px;">CF Kobalt</div>
-                    <div class="cf-value">30%</div>
+                    <div class="cf-value" id="cf-kobalt">30%</div>
                 </div>
                 <div class="cf-detail" style="text-align:center;">
                     <div style="font-size:11px; color:var(--gray-500); margin-bottom:2px;">CF Krom</div>
@@ -249,7 +263,7 @@
 
             <!-- HPM FINAL -->
             <div class="hpm-result-card">
-                <div class="hpm-result-label">HPM Bijih Nikel Revisi</div>
+                <div class="hpm-result-label">HPM Bijih Nikel (Kepmen 363/2026)</div>
                 <div class="hpm-result-value" id="res-hpm-final">$0.00</div>
                 <div class="hpm-result-unit">USD per Wet Metric Ton (WMT)</div>
             </div>
@@ -259,20 +273,21 @@
         <section class="section-card" id="section-perbandingan">
             <div class="section-header">
                 <div class="section-number">5</div>
-                <div class="section-title">Perbandingan dengan HPM Eksisting</div>
+                <div class="section-title">Perbandingan dengan Rumus Sebelumnya</div>
             </div>
 
             <div style="font-size:12px; color:var(--gray-500); margin-bottom:12px;">
-                Formula lama (KEPMEN 268/2025): HPM = %Ni × CF_Ni × HMA_Ni × (1 - MC)
+                Rumus sebelumnya (KEPMEN 144/2026, perubahan pertama): struktur sama, namun CF Ni linear 30% @ Ni 1,6% untuk semua kadar
+                (<span id="cmp-cf-prev">—</span>) dan CF Kobalt 30% untuk semua kadar.
             </div>
 
             <div class="comparison-grid">
                 <div class="comparison-card new">
-                    <div class="label">HPM Revisi (144/2026)</div>
+                    <div class="label">HPM Berlaku (363/2026)</div>
                     <div class="value" id="cmp-new">$0.00</div>
                 </div>
                 <div class="comparison-card old">
-                    <div class="label">HPM Eksisting (268/2025)</div>
+                    <div class="label">HPM Sebelumnya (144/2026)</div>
                     <div class="value" id="cmp-old">$0.00</div>
                 </div>
             </div>
@@ -282,7 +297,7 @@
                 <span class="value" id="cmp-selisih">—</span>
             </div>
             <div class="selisih-row" style="margin-top:8px; background: rgba(13, 114, 109, 0.06); border-color: rgba(13, 114, 109, 0.15);">
-                <span class="label">% Kenaikan</span>
+                <span class="label">% Perubahan</span>
                 <span class="value" id="cmp-pct" style="color:var(--teal-900);">—</span>
             </div>
         </section>
@@ -307,7 +322,7 @@
         <button class="btn btn-secondary" onclick="dismissInstall()" style="padding:8px;">✕</button>
     </div>
 
-    <script src="calculator.js?v=4"></script>
+    <script src="calculator.js?v=5"></script>
     <script>
         // ============================================================
         // UI Controller
@@ -363,6 +378,17 @@
         }
 
         function updateUI(r) {
+            // Regime badge (Kepmen 363/2026)
+            const badgeRegime = document.getElementById('badge-regime');
+            if (r.lowGrade) {
+                badgeRegime.className = 'threshold-badge regime low';
+                badgeRegime.textContent = '⚠ Ni ≤ 1.2% — Rezim kadar rendah';
+            } else {
+                badgeRegime.className = 'threshold-badge regime';
+                badgeRegime.textContent = 'Ni > 1.2% — Rezim normal';
+            }
+            document.getElementById('regime-note').classList.toggle('show', r.lowGrade);
+
             // Threshold badges
             const badgeFe = document.getElementById('badge-fe');
             if (r.feIncluded) {
@@ -376,13 +402,17 @@
             const badgeCo = document.getElementById('badge-co');
             if (r.coIncluded) {
                 badgeCo.className = 'threshold-badge included';
-                badgeCo.textContent = '✓ Co ≥ 0.05% — Dihitung';
+                badgeCo.textContent = '✓ Co ≥ 0.05% — Dihitung (CF ' + HPM.formatPct(r.cfCo, 0) + ')';
             } else {
                 badgeCo.className = 'threshold-badge excluded';
                 badgeCo.textContent = '✗ Co < 0.05% — Tidak dihitung';
             }
 
             // CF detail
+            document.getElementById('cf-baseline-label').textContent =
+                'CF Baseline (Ni ' + (r.refNi * 100).toFixed(1) + '%)';
+            document.getElementById('cf-baseline-value').textContent = HPM.formatPct(r.refCF);
+            document.getElementById('cf-kobalt').textContent = HPM.formatPct(r.cfCo, 0);
             document.getElementById('cf-delta-ni').textContent =
                 (r.deltaNi >= 0 ? '+' : '') + (r.deltaNi * 100).toFixed(2) + '%';
             document.getElementById('cf-delta-cf').textContent =
@@ -403,11 +433,13 @@
 
             // Comparison
             document.getElementById('cmp-new').textContent = '$' + HPM.formatUSD(r.hpm);
-            document.getElementById('cmp-old').textContent = '$' + HPM.formatUSD(r.hpmOld);
+            document.getElementById('cmp-old').textContent = '$' + HPM.formatUSD(r.hpmPrev);
+            document.getElementById('cmp-cf-prev').textContent =
+                'CF Ni ' + HPM.formatPct(r.cfNiPrev) + ' pada kadar ini';
             document.getElementById('cmp-selisih').textContent =
-                (r.selisih >= 0 ? '+' : '') + '$' + HPM.formatUSD(r.selisih);
+                (r.selisih >= 0 ? '+' : '−') + '$' + HPM.formatUSD(Math.abs(r.selisih));
             document.getElementById('cmp-pct').textContent =
-                (r.pctKenaikan >= 0 ? '+' : '') + HPM.formatPct(r.pctKenaikan);
+                (r.pctPerubahan >= 0 ? '+' : '') + HPM.formatPct(r.pctPerubahan);
         }
 
         function clearResults() {
@@ -421,6 +453,13 @@
             document.getElementById('cmp-old').textContent = '$0.00';
             document.getElementById('cmp-selisih').textContent = '—';
             document.getElementById('cmp-pct').textContent = '—';
+            document.getElementById('badge-regime').textContent = '—';
+            document.getElementById('badge-regime').className = 'threshold-badge';
+            document.getElementById('regime-note').classList.remove('show');
+            document.getElementById('cf-baseline-label').textContent = 'CF Baseline (Ni 1.6%)';
+            document.getElementById('cf-baseline-value').textContent = '30.00%';
+            document.getElementById('cf-kobalt').textContent = '30%';
+            document.getElementById('cmp-cf-prev').textContent = '—';
             document.getElementById('badge-fe').textContent = '—';
             document.getElementById('badge-co').textContent = '—';
             document.getElementById('badge-fe').className = 'threshold-badge';

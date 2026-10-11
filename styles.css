@@ -476,6 +476,33 @@ body::before {
     border: 1px solid rgba(237, 28, 36, 0.15);
 }
 
+/* Rezim CF Ni (Kepmen 363/2026): normal vs kadar rendah ≤ 1,2% */
+.threshold-badge.regime {
+    background: rgba(8, 98, 164, 0.06);
+    color: var(--blue-700);
+    border: 1px solid rgba(8, 98, 164, 0.18);
+}
+
+.threshold-badge.regime.low {
+    background: rgba(245, 130, 32, 0.08);
+    color: #b45309;
+    border: 1px solid rgba(245, 130, 32, 0.25);
+}
+
+.regime-note {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    background: rgba(245, 130, 32, 0.07);
+    border: 1px solid rgba(245, 130, 32, 0.22);
+    color: #92400e;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.regime-note.show { display: block; }
+
 /* --- Results --- */
 .results-grid {
     display: grid;
@@ -755,6 +782,8 @@ body::before {
     .hpm-result-value { font-size: 30px; }
     .comparison-grid { grid-template-columns: 1fr; }
     .header-title h1 { font-size: 14px; }
+    .ore-selector { display: grid; grid-template-columns: 1fr 1fr; }
+    .ore-btn { padding: 12px 10px; }
 }
 
 @media (min-width: 600px) {
