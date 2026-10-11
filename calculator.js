@@ -60,7 +60,7 @@ const HPM = (() => {
         sumber: 'data bawaan aplikasi'
     };
 
-    const VERSION = '2.2.0';
+    const VERSION = '2.3.0';
 
     /**
      * Convert percentage input to decimal form.
@@ -207,6 +207,162 @@ const HPM = (() => {
             hpmPrev: prev.hpm,
             selisih,
             pctPerubahan
+        };
+    }
+
+    // ============================================================
+    // MODEL KORELASI GEOLOGIS PROFIL LATERIT
+    // ------------------------------------------------------------
+    // Kadar tipikal (dalam %) sepanjang profil laterit, diurutkan menurut
+    // kadar Ni. Dua jalur karena Ni tidak monoton terhadap kedalaman:
+    //  - "atas" : limonit → transisi → saprolit atas. Ni naik ke bawah,
+    //             Fe & Cr turun tajam, Co memuncak di dasar limonit.
+    //  - "bawah": batuan dasar → saprolit bawah → puncak saprolit. Ni naik
+    //             ke atas, Fe tetap rendah, Co & Cr rendah.
+    // Kedua jalur bertemu di puncak saprolit (Ni ±2,2%).
+    // Model dipakai sebagai GRADIEN di sekitar input pengguna (bukan nilai
+    // absolut): kadar_baru = kadar_input + (profil(Ni_baru) − profil(Ni_input)).
+    // Sumber & asumsi: docs/RUMUS.md bagian "Sensitivitas kadar Ni".
+    // ============================================================
+    //               Ni     Fe     Co     Cr    MC
+    const GEO_PATHS = {
+        atas: {
+            label: 'Limonit → saprolit (profil atas)',
+            nodes: [
+                [0.50, 50.0, 0.040, 3.00, 38.0],   // tanah penutup / limonit merah
+                [0.80, 48.0, 0.070, 2.80, 38.0],   // limonit merah
+                [1.20, 45.0, 0.120, 2.40, 37.0],   // limonit kuning
+                [1.40, 40.0, 0.150, 2.10, 36.5],   // dasar limonit (puncak Co)
+                [1.55, 28.0, 0.100, 1.50, 35.0],   // zona transisi
+                [1.80, 16.0, 0.050, 0.90, 33.0],   // saprolit atas
+                [2.20, 11.0, 0.030, 0.60, 31.0],   // puncak saprolit
+                [2.60,  9.0, 0.025, 0.50, 30.0],
+            ]
+        },
+        bawah: {
+            label: 'Saprolit → batuan dasar (profil bawah)',
+            nodes: [
+                [0.30,  6.0, 0.012, 0.30, 15.0],   // batuan dasar
+                [0.80,  7.0, 0.018, 0.35, 22.0],   // saprolit berbatu
+                [1.20,  8.0, 0.022, 0.42, 26.0],
+                [1.60,  9.5, 0.026, 0.50, 29.0],   // saprolit
+                [2.20, 11.0, 0.030, 0.60, 31.0],   // puncak saprolit
+                [2.60,  9.0, 0.025, 0.50, 30.0],
+            ]
+        }
+    };
+
+    /** Interpolasi linear kadar tipikal pada jalur profil (input/output dalam %) */
+    function profileAt(pathKey, niPct) {
+        const nodes = GEO_PATHS[pathKey].nodes;
+        const pick = n => ({ fe: n[1], co: n[2], cr: n[3], mc: n[4] });
+        if (niPct <= nodes[0][0]) return pick(nodes[0]);
+        if (niPct >= nodes[nodes.length - 1][0]) return pick(nodes[nodes.length - 1]);
+        for (let i = 1; i < nodes.length; i++) {
+            if (niPct <= nodes[i][0]) {
+                const a = nodes[i - 1], b = nodes[i];
+                const t = (niPct - a[0]) / (b[0] - a[0]);
+                return {
+                    fe: a[1] + t * (b[1] - a[1]),
+                    co: a[2] + t * (b[2] - a[2]),
+                    cr: a[3] + t * (b[3] - a[3]),
+                    mc: a[4] + t * (b[4] - a[4]),
+                };
+            }
+        }
+    }
+
+    /** Pilih jalur profil yang kadar Fe tipikalnya paling dekat dengan input */
+    function pickPath(niPct, fePct) {
+        const dAtas = Math.abs(profileAt('atas', niPct).fe - fePct);
+        const dBawah = Math.abs(profileAt('bawah', niPct).fe - fePct);
+        return dAtas <= dBawah ? 'atas' : 'bawah';
+    }
+
+    const round = (v, d) => Math.round(v * 10 ** d) / 10 ** d;
+
+    /** Kadar unsur lain (dalam %) saat Ni digeser dari niPct0 ke niPct */
+    function adjustGrades(base, niPct0, niPct, pathKey) {
+        const p0 = profileAt(pathKey, niPct0);
+        const p1 = profileAt(pathKey, niPct);
+        return {
+            fe: Math.max(0, base.fe + (p1.fe - p0.fe)),
+            co: Math.max(0, base.co + (p1.co - p0.co)),
+            cr: Math.max(0, base.cr + (p1.cr - p0.cr)),
+            mc: Math.min(99, Math.max(0, base.mc + (p1.mc - p0.mc))),
+        };
+    }
+
+    /**
+     * Analisis sensitivitas HPM terhadap kadar Ni.
+     * @param inputs  sama seperti calculate()
+     * @param opts.range  rentang ± kadar Ni dalam % (default 0,10)
+     * @param opts.step   langkah kadar Ni dalam % (default 0,01)
+     * @param opts.mode   'geo' (kadar lain ikut korelasi geologis) | 'tetap'
+     * @param opts.path   'auto' | 'atas' | 'bawah'
+     */
+    function sensitivity(inputs, opts = {}) {
+        const range = opts.range ?? 0.10;
+        const step = opts.step ?? 0.01;
+        const mode = opts.mode ?? 'geo';
+
+        const ni0 = parseFloat(inputs.ni);
+        if (!(ni0 > 0)) return null;
+        const base = {
+            fe: parseFloat(inputs.fe) || 0,
+            co: parseFloat(inputs.co) || 0,
+            cr: parseFloat(inputs.cr) || 0,
+            mc: parseFloat(inputs.mc) || 0,
+        };
+        const pathKey = (opts.path && opts.path !== 'auto') ? opts.path : pickPath(ni0, base.fe);
+
+        const gradesAt = (niPct) => mode === 'geo'
+            ? adjustGrades(base, ni0, niPct, pathKey)
+            : { ...base };
+
+        const evalAt = (niPct) => {
+            const g = gradesAt(niPct);
+            const r = calculate({ ...inputs, ni: niPct, fe: g.fe, co: g.co, cr: g.cr, mc: g.mc });
+            return {
+                ni: round(niPct, 4), fe: g.fe, co: g.co, cr: g.cr, mc: g.mc,
+                hpm: r.hpm, cfNi: r.cfNi, cfCo: r.cfCo,
+                lowGrade: r.lowGrade, feIncluded: r.feIncluded, coIncluded: r.coIncluded,
+                komponenNi: r.komponenNi, komponenFe: r.komponenFe,
+                komponenCo: r.komponenCo, komponenCr: r.komponenCr,
+            };
+        };
+
+        const n = Math.round(range / step);
+        const rows = [];
+        for (let k = -n; k <= n; k++) {
+            const niPct = round(ni0 + k * step, 4);
+            if (niPct <= 0) continue;
+            rows.push(evalAt(niPct));
+        }
+        const baseRow = evalAt(round(ni0, 4));
+        rows.forEach(r => { r.delta = r.hpm - baseRow.hpm; });
+
+        // Peristiwa ambang yang terlewati di dalam rentang
+        const events = [];
+        for (let i = 1; i < rows.length; i++) {
+            const a = rows[i - 1], b = rows[i];
+            const at = round((a.ni + b.ni) / 2, 4);
+            if (a.lowGrade !== b.lowGrade) events.push({ ni: at, type: 'cfNi', label: 'Batas CF Ni 1,2%' });
+            if (a.feIncluded !== b.feIncluded) events.push({ ni: at, type: 'fe', label: 'Fe melewati 35%' });
+            if (a.coIncluded !== b.coIncluded) events.push({ ni: at, type: 'co', label: 'Co melewati 0,05%' });
+        }
+
+        // Nilai marginal satu langkah ke atas dan ke bawah
+        const up = evalAt(round(ni0 + step, 4));
+        const down = ni0 - step > 0 ? evalAt(round(ni0 - step, 4)) : null;
+
+        return {
+            ni0: round(ni0, 4), step, range, mode,
+            path: pathKey, pathLabel: GEO_PATHS[pathKey].label,
+            base: baseRow, rows, events,
+            marginalUp: up.hpm - baseRow.hpm,
+            marginalDown: down ? down.hpm - baseRow.hpm : null,
+            upRow: up, downRow: down,
         };
     }
 
@@ -367,6 +523,10 @@ const HPM = (() => {
         checkFe,
         checkCo,
         calculate,
+        GEO_PATHS,
+        profileAt,
+        pickPath,
+        sensitivity,
         isValidHMA,
         fetchHMA,
         formatUSD,

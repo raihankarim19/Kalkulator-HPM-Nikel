@@ -12,7 +12,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=7">
+    <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
 
@@ -303,6 +303,108 @@
             </div>
         </section>
 
+
+        <!-- Section 6: Sensitivitas Kadar Ni -->
+        <section class="section-card is-empty" id="section-sensitivitas">
+            <div class="section-header">
+                <div class="section-number">6</div>
+                <div class="section-title">Sensitivitas Kadar Ni</div>
+            </div>
+            <p class="sens-lede">
+                Bagaimana HPM berubah bila kadar Ni naik atau turun per 0,01%. Kadar Fe, Co, Cr, dan MC
+                ikut menyesuaikan pola geologis profil laterit.
+            </p>
+            <p class="sens-empty-msg">Isi kadar Ni di bagian 1 untuk melihat grafik.</p>
+
+            <div class="sens-body">
+                <div class="sens-controls">
+                    <div class="seg" id="sens-range" role="group" aria-label="Rentang kadar Ni">
+                        <button type="button" data-value="0.05" aria-pressed="false">±0,05%</button>
+                        <button type="button" data-value="0.10" aria-pressed="true">±0,10%</button>
+                        <button type="button" data-value="0.20" aria-pressed="false">±0,20%</button>
+                    </div>
+                    <div class="seg" id="sens-mode" role="group" aria-label="Kadar unsur lain">
+                        <button type="button" data-value="geo" aria-pressed="true">Ikut pola geologi</button>
+                        <button type="button" data-value="tetap" aria-pressed="false">Kadar lain tetap</button>
+                    </div>
+                </div>
+
+                <div class="sens-kpis">
+                    <div class="sens-kpi" id="kpi-up">
+                        <div class="kpi-label">Ni naik 0,01%</div>
+                        <div class="kpi-value">—</div>
+                        <div class="kpi-sub"></div>
+                    </div>
+                    <div class="sens-kpi" id="kpi-down">
+                        <div class="kpi-label">Ni turun 0,01%</div>
+                        <div class="kpi-value">—</div>
+                        <div class="kpi-sub"></div>
+                    </div>
+                </div>
+
+                <div class="sens-chart-head">
+                    <div>
+                        <div class="sens-chart-title">HPM bijih nikel (USD/wmt)</div>
+                        <div class="sens-chip" id="sens-path-chip"></div>
+                    </div>
+                    <div class="sens-legend" id="sens-legend">
+                        <span><i class="key key-main"></i>Ikut pola geologi</span>
+                        <span><i class="key key-ghost"></i>Kadar lain tetap</span>
+                    </div>
+                </div>
+                <div class="sens-chart-wrap">
+                    <div class="sens-chart" id="sens-chart-main" tabindex="0"
+                         aria-label="Grafik HPM terhadap kadar Ni. Gunakan panah kiri dan kanan untuk menelusuri titik."></div>
+                    <div class="sens-xlabel">Kadar Ni (%)</div>
+                    <div class="sens-tooltip" id="sens-tooltip" role="status" aria-live="polite">
+                        <div class="tt-ni"></div>
+                        <div class="tt-hpm"></div>
+                        <div class="tt-delta"></div>
+                        <div class="tt-grades"></div>
+                        <div class="tt-cf"></div>
+                    </div>
+                </div>
+
+                <div class="sens-mini-title">Kadar unsur lain yang menyertai</div>
+                <div class="sens-minis">
+                    <div class="sens-mini"><div class="mini-head"><span>Fe</span><b id="sens-mini-val-fe">—</b></div><div id="sens-mini-fe"></div></div>
+                    <div class="sens-mini"><div class="mini-head"><span>Co</span><b id="sens-mini-val-co">—</b></div><div id="sens-mini-co"></div></div>
+                    <div class="sens-mini"><div class="mini-head"><span>Cr</span><b id="sens-mini-val-cr">—</b></div><div id="sens-mini-cr"></div></div>
+                    <div class="sens-mini"><div class="mini-head"><span>MC</span><b id="sens-mini-val-mc">—</b></div><div id="sens-mini-mc"></div></div>
+                </div>
+
+                <details class="sens-details">
+                    <summary><span>Jalur profil laterit</span></summary>
+                    <p>
+                        Kadar Ni tidak naik terus ke arah dalam. Di <b>profil atas</b> (limonit → transisi → saprolit)
+                        Ni naik ke bawah sementara Fe dan Cr turun tajam, dan Co memuncak di dasar limonit.
+                        Di <b>profil bawah</b> (puncak saprolit → batuan dasar) Ni turun ke bawah dengan Fe tetap rendah.
+                        Jalur dipilih otomatis dari kadar Fe input yang paling cocok.
+                    </p>
+                    <div class="seg" id="sens-path" role="group" aria-label="Jalur profil">
+                        <button type="button" data-value="auto" aria-pressed="true">Otomatis</button>
+                        <button type="button" data-value="atas" aria-pressed="false">Profil atas</button>
+                        <button type="button" data-value="bawah" aria-pressed="false">Profil bawah</button>
+                    </div>
+                </details>
+
+                <details class="sens-details">
+                    <summary><span>Lihat tabel data (<span id="sens-table-count">0</span> baris)</span></summary>
+                    <div class="sens-table-wrap">
+                        <table id="sens-table">
+                            <thead><tr><th>Ni</th><th>Fe</th><th>Co</th><th>Cr</th><th>MC</th><th>CF Ni</th><th>HPM</th><th>Δ</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </details>
+
+                <p class="sens-note">
+                    Pola kadar memakai profil tipikal laterit Sulawesi–Halmahera dan dipakai sebagai <i>laju perubahan</i>
+                    di sekitar kadar input, bukan nilai mutlak. Untuk keputusan komersial, kalibrasikan dengan data bor
+                    lokasi Anda. <a href="https://github.com/raihankarim19/Kalkulator-HPM-Nikel/blob/main/docs/RUMUS.md#sensitivitas-kadar-ni" target="_blank" rel="noopener">Metodologi &amp; sumber</a>
+                </p>
+            </div>
+        </section>
     </main>
 
     <!-- Credit -->
@@ -324,7 +426,8 @@
         <button class="btn btn-secondary" onclick="dismissInstall()" style="padding:8px;">✕</button>
     </div>
 
-    <script src="calculator.js?v=7"></script>
+    <script src="calculator.js?v=8"></script>
+    <script src="sensitivity.js?v=8"></script>
     <script>
         // ============================================================
         // UI Controller
@@ -372,11 +475,13 @@
             // Skip if no Ni input
             if (!inputs.ni) {
                 clearResults();
+                Sens.update(null);
                 return;
             }
 
             const result = HPM.calculate(inputs);
             updateUI(result);
+            Sens.update(inputs);
         }
 
         function updateUI(r) {
@@ -548,6 +653,7 @@
 
         // --- Init ---
         function init() {
+            Sens.init();
             // Load cached HMA
             const cached = localStorage.getItem('hma_cache');
             if (cached) {

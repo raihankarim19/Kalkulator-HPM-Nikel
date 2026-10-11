@@ -49,6 +49,76 @@ Perhatikan lompatan sekitar 12 poin persentase di batas 1,2%. Bijih Ni 1,20% men
 | Kobalt (Co) | 30% bila Ni > 1,2%; **17% bila Ni ≤ 1,2%** | Co ≥ 0,05% |
 | Krom (Cr) | 10% | Selalu dihitung |
 
+## Sensitivitas kadar Ni
+
+Bagian 6 kalkulator menghitung ulang HPM untuk setiap langkah **0,01% Ni** di sekitar kadar input (rentang ±0,05%, ±0,10%, atau ±0,20%). Pada mode **Ikut pola geologi**, kadar Fe, Co, Cr, dan MC ikut berubah mengikuti pola profil laterit. Pada mode **Kadar lain tetap**, kadar tersebut dikunci (ceteris paribus).
+
+### Dasar geologis
+
+Profil laterit nikel di Sulawesi dan Halmahera tersusun dari atas ke bawah: tanah penutup → limonit → zona transisi → saprolit → batuan dasar (peridotit/harzburgit terserpentinisasi). Pola yang konsisten dilaporkan:
+
+- **Fe, Cr, dan Al** terkonsentrasi di limonit (goethit/hematit) dan turun ke bawah. **MgO dan SiO₂** naik ke bawah (Irfan dkk. 2021; Ilyas dkk. 2022; Hasria dkk. 2024; Safah dkk. 2026).
+- **Ni memuncak di saprolit** (terikat di serpentin/garnierit), lebih rendah di limonit. Hasria dkk. (2024) mencatat Ni limonit 0,8–1,2% dan saprolit 1,3–2,4%. Ariend dkk. (2026) mendapati **hubungan terbalik Fe–Ni**: limonit Fe 48,8–50,2% dengan Ni 0,70–1,15%, saprolit Fe 21–29% dengan Ni 1,45–2,05%.
+- **Co** terkaya di limonit, terutama di **dasar limonit**, karena berasosiasi dengan oksida Mn (asbolan) dan goethit (Ito dkk. 2021; Safah dkk. 2026). Di zona limonit, Ni berkorelasi positif dengan Co dan Fe–Co berkorelasi kuat (Ilyas dkk. 2022).
+- **Kadar air** limonit (lempung goethitik) umumnya lebih tinggi daripada saprolit.
+- **Ni tidak monoton terhadap kedalaman**: di bawah puncak saprolit, Ni turun lagi ke arah batuan dasar dengan Fe tetap rendah. Lithologi dan derajat serpentinisasi batuan dasar sangat memengaruhi kadar (Irfan dkk. 2021; Ito dkk. 2021).
+
+### Model
+
+Karena Ni tidak monoton, model memakai **dua jalur profil**. Masing-masing berupa tabel kadar tipikal yang diinterpolasi linear terhadap Ni:
+
+**Profil atas** (limonit → transisi → saprolit atas; Ni naik ke bawah)
+
+| Zona | Ni | Fe | Co | Cr | MC |
+|---|---|---|---|---|---|
+| Tanah penutup / limonit merah | 0,50 | 50,0 | 0,040 | 3,00 | 38,0 |
+| Limonit merah | 0,80 | 48,0 | 0,070 | 2,80 | 38,0 |
+| Limonit kuning | 1,20 | 45,0 | 0,120 | 2,40 | 37,0 |
+| Dasar limonit (puncak Co) | 1,40 | 40,0 | 0,150 | 2,10 | 36,5 |
+| Transisi | 1,55 | 28,0 | 0,100 | 1,50 | 35,0 |
+| Saprolit atas | 1,80 | 16,0 | 0,050 | 0,90 | 33,0 |
+| Puncak saprolit | 2,20 | 11,0 | 0,030 | 0,60 | 31,0 |
+| | 2,60 | 9,0 | 0,025 | 0,50 | 30,0 |
+
+**Profil bawah** (batuan dasar → saprolit; Ni naik ke atas)
+
+| Zona | Ni | Fe | Co | Cr | MC |
+|---|---|---|---|---|---|
+| Batuan dasar | 0,30 | 6,0 | 0,012 | 0,30 | 15,0 |
+| Saprolit berbatu | 0,80 | 7,0 | 0,018 | 0,35 | 22,0 |
+| | 1,20 | 8,0 | 0,022 | 0,42 | 26,0 |
+| Saprolit | 1,60 | 9,5 | 0,026 | 0,50 | 29,0 |
+| Puncak saprolit | 2,20 | 11,0 | 0,030 | 0,60 | 31,0 |
+| | 2,60 | 9,0 | 0,025 | 0,50 | 30,0 |
+
+Semua angka dalam %. Tabel ini dikalibrasi agar melewati dua preset nyata di aplikasi: limonit (Ni 1,35 / Fe 40,5 / Co 0,15 / Cr 2,24 / MC 36,69) dan saprolit (Ni 1,81 / Fe 11,79 / Co 0,03 / Cr 0,77 / MC 35).
+
+**Pemilihan jalur.** Jalur otomatis adalah jalur yang kadar Fe tipikalnya paling dekat dengan Fe input pada kadar Ni yang sama. Contoh pada Ni 1,30%: Fe input ~43% → profil atas (limonit); Fe input ~9% → profil bawah (saprolit). Pengguna dapat memilih jalur secara manual.
+
+**Penjangkaran ke input.** Tabel hanya menyumbang **laju perubahan**, bukan nilai absolut:
+
+```
+kadar_X(Ni) = kadar_X_input + [ profil_X(Ni) − profil_X(Ni_input) ]
+```
+
+Jadi kadar di titik input selalu sama persis dengan input pengguna, dan selisih antarendapan (misalnya Fe saprolit Halmahera yang lebih tinggi) tidak mengubah arah perubahan. Kadar dibatasi ≥ 0 dan MC ≤ 99%.
+
+### Yang perlu diperhatikan
+
+- **Dua "tebing" HPM.** Pertama, batas CF Ni 1,2% (Kepmen 363/2026): Ni 1,20% → 1,21% menaikkan CF Ni dari 14% ke 26,1%. Kedua, **Fe turun melewati 35%** di zona transisi (sekitar Ni 1,45% pada profil atas): komponen besi tiba-tiba ikut dihitung, dengan nilai sekitar USD 15/dmt pada HMA Okt-I 2026. Grafik menandai keduanya dengan garis oranye.
+- **Model ini rata-rata regional.** Pola di satu blok tambang bisa berbeda (misalnya saprolit kaya Fe di Halmahera, atau limonit ber-Co rendah). Untuk keputusan komersial seperti penetapan kadar jual atau blending, gradien sebaiknya diganti dengan regresi dari data bor lokasi sendiri.
+- **Gradien MC paling tidak pasti.** Kadar air dipengaruhi cuaca, penumpukan, dan penanganan, bukan hanya mineralogi.
+
+### Referensi geologi
+
+- Safah dkk. (2026). [Quantifying the Role of Chemical Weathering in Nickel and Cobalt Mobilization and Redistribution in Lateritic Profiles, Sulawesi, Indonesia](https://consensus.app/papers/details/f6cb029ebd8c5be5a9a3050b822e0a05/). *The Iraqi Geological Journal*.
+- Ito dkk. (2021). [Geochemical constraints on the mobilization of Ni and critical metals in laterite deposits, Sulawesi, Indonesia: A mass-balance approach](https://consensus.app/papers/details/97c2fa2c83bf53189d58f03c858b28be/). *Resource Geology*.
+- Irfan dkk. (2021). [Role of bedrock serpentinization on the development of nickel laterite deposit in Sorowako, Sulawesi, Indonesia](https://consensus.app/papers/details/57800409e25d59fb9b8985cddda52c5a/). *IOP Conf. Ser.: Earth Environ. Sci.*
+- Ilyas dkk. (2022). [Analisis Karakteristik Mineralogi dan Geokimia Berdasarkan Zona Profil Endapan Nikel Laterit, Bahodopi, Morowali](https://consensus.app/papers/details/fbff5ba20f535b419130170e5c44cda9/). *Jurnal Geomine*.
+- Hasria dkk. (2024). [Mineralogy and Geochemical Characteristics of Lateritic Nickel Deposit in Wiwirano District, North Konawe](https://consensus.app/papers/details/d28893f21b545ed1a21031aeb92f75ed/). *Iraqi Geological Journal*.
+- Ariend dkk. (2026). [Analysis of the Role of Iron (Fe) Content on Nickel Distribution in Limonite and Saprolite Zones Using ED-XRF](https://consensus.app/papers/details/4707bcf0768351748323286d32e33227/). *Journal of Green Chemical and Environmental Engineering*.
+- Qi dkk. (2024). [Nickel enrichment during lateritization of ophiolitic ultramafic rocks: Kelurahan Pondidrha, Sulawesi](https://consensus.app/papers/details/e3f10a32435550518d4a5b2c30ab9931/). *Ore Geology Reviews*.
+
 ## Validasi
 
 Engine divalidasi terhadap HPM yang dipublikasikan Shanghai Metals Market (SMM) per kadar Ni. Asumsi kualitas yang konsisten dengan angka SMM: Fe > 35% (tidak dihitung), Co 0,10%, Cr 2%, MC 35%.

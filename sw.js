@@ -8,12 +8,13 @@
 // diblokir jaringan tidak menghalangi pembaruan aplikasi.
 // ============================================================
 
-const CACHE_NAME = 'hpm-nikel-v6';
+const CACHE_NAME = 'hpm-nikel-v7';
 const CORE = [
     './',
     './index.html',
     './styles.css',
     './calculator.js',
+    './sensitivity.js',
     './hma.json',
     './manifest.json',
     './logo.png',

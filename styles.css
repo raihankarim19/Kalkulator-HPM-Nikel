@@ -808,3 +808,323 @@ body::before {
 }
 
 .hma-source.show { display: block; }
+
+/* ============================================================
+   Section 6 — Sensitivitas kadar Ni
+   ============================================================ */
+.section-card:nth-child(6) { animation-delay: 0.3s; }
+
+.sens-lede {
+    margin: -4px 0 16px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--gray-500);
+}
+
+.sens-empty-msg { display: none; font-size: 13px; color: var(--gray-500); }
+#section-sensitivitas.is-empty .sens-body { display: none; }
+#section-sensitivitas.is-empty .sens-empty-msg { display: block; }
+
+/* Segmented controls */
+.sens-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.seg {
+    display: inline-flex;
+    padding: 3px;
+    border-radius: var(--radius-full);
+    background: var(--gray-100);
+    border: 1px solid var(--border-default);
+}
+
+.seg button {
+    border: 0;
+    background: transparent;
+    padding: 7px 14px;
+    border-radius: var(--radius-full);
+    font: 600 12.5px 'Myriad Pro', 'Segoe UI', sans-serif;
+    color: var(--gray-500);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    white-space: nowrap;
+}
+
+.seg button:hover { color: var(--blue-900); }
+
+.seg button[aria-pressed="true"] {
+    background: var(--white);
+    color: var(--blue-900);
+    box-shadow: 0 1px 3px rgba(22, 50, 92, 0.12);
+}
+
+.seg button:focus-visible,
+.sens-chart:focus-visible,
+.sens-details summary:focus-visible {
+    outline: 2px solid var(--blue-500);
+    outline-offset: 2px;
+}
+
+/* KPI tiles */
+.sens-kpis {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.sens-kpi {
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    background: var(--gray-50);
+    border: 1px solid var(--border-default);
+}
+
+.sens-kpi.is-jump {
+    background: rgba(245, 130, 32, 0.07);
+    border-color: rgba(245, 130, 32, 0.3);
+}
+
+.kpi-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-500);
+}
+
+.kpi-value {
+    margin: 2px 0 2px;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--blue-900);
+    letter-spacing: -0.3px;
+}
+
+.kpi-sub {
+    font-size: 11.5px;
+    color: var(--gray-500);
+}
+
+/* Chart */
+.sens-chart-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
+
+.sens-chart-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--blue-900);
+}
+
+.sens-chip {
+    margin-top: 2px;
+    font-size: 11.5px;
+    color: var(--gray-500);
+}
+
+.sens-legend {
+    display: flex;
+    gap: 14px;
+    font-size: 11.5px;
+    color: var(--gray-500);
+}
+
+.sens-legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+.key {
+    display: inline-block;
+    width: 16px;
+    height: 0;
+    border-top: 2px solid #0862A4;
+    border-radius: 2px;
+}
+
+.key-ghost { border-top: 1.5px solid #94a3b8; }
+
+.sens-chart-wrap { position: relative; }
+
+.sens-chart { width: 100%; border-radius: var(--radius-sm); }
+.sens-chart:focus { outline: none; }
+
+.sens-svg { display: block; overflow: visible; touch-action: pan-y; }
+
+.sens-svg text { font-family: 'Myriad Pro', 'Segoe UI', sans-serif; }
+.sens-svg .sens-tick { font-variant-numeric: tabular-nums; }
+.sens-svg .sens-halo { paint-order: stroke; stroke: #fff; stroke-width: 4px; stroke-linejoin: round; }
+
+.sens-xlabel {
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--gray-500);
+    margin-top: 2px;
+}
+
+.sens-tooltip {
+    position: absolute;
+    z-index: 2;
+    min-width: 190px;
+    max-width: 240px;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    background: var(--white);
+    border: 1px solid var(--border-default);
+    box-shadow: var(--shadow-lg);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.12s, transform 0.12s;
+}
+
+.sens-tooltip.show { opacity: 1; transform: none; }
+
+.tt-ni { font-size: 11.5px; color: var(--gray-500); font-weight: 600; }
+.tt-hpm { font-size: 20px; font-weight: 700; color: var(--blue-900); margin: 1px 0; }
+.tt-delta { font-size: 12px; font-weight: 600; color: var(--gray-500); margin-bottom: 6px; }
+.tt-delta.up { color: var(--teal-900); }
+.tt-delta.down { color: #b91c1c; }
+.tt-grades, .tt-cf { font-size: 11.5px; line-height: 1.45; color: var(--gray-700); }
+.tt-cf { color: var(--gray-500); margin-top: 2px; }
+
+/* Small multiples */
+.sens-mini-title {
+    margin: 22px 0 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--blue-900);
+}
+
+.sens-minis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.sens-mini {
+    padding: 10px 10px 4px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    min-width: 0;
+}
+
+.mini-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 12px;
+    color: var(--gray-500);
+    font-weight: 600;
+}
+
+.mini-head b {
+    font-size: 14px;
+    color: var(--blue-900);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Disclosure */
+.sens-details {
+    margin-top: 14px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--gray-50);
+}
+
+.sens-details summary {
+    cursor: pointer;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue-900);
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sens-details summary::-webkit-details-marker { display: none; }
+.sens-details summary::after { content: '▾'; color: var(--gray-500); transition: transform 0.2s; }
+.sens-details[open] summary::after { transform: rotate(180deg); }
+
+.sens-details > p {
+    margin: 0 16px 12px;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--gray-700);
+}
+
+.sens-details .seg { margin: 0 16px 16px; }
+
+.sens-table-wrap {
+    max-height: 360px;
+    overflow: auto;
+    margin: 0 8px 8px;
+    background: var(--white);
+    border-radius: var(--radius-sm);
+}
+
+#sens-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+#sens-table th {
+    position: sticky;
+    top: 0;
+    background: var(--white);
+    text-align: right;
+    padding: 8px 10px;
+    font-weight: 600;
+    color: var(--gray-500);
+    border-bottom: 1px solid var(--border-default);
+}
+
+#sens-table td {
+    text-align: right;
+    padding: 6px 10px;
+    color: var(--gray-700);
+    border-bottom: 1px solid var(--gray-100);
+    white-space: nowrap;
+}
+
+#sens-table th:first-child, #sens-table td:first-child { text-align: left; }
+#sens-table tr.is-base td { background: rgba(8, 98, 164, 0.07); font-weight: 700; color: var(--blue-900); }
+#sens-table tr.is-hover td { background: rgba(8, 98, 164, 0.04); }
+
+.sens-note {
+    margin: 14px 0 0;
+    font-size: 11.5px;
+    line-height: 1.55;
+    color: var(--gray-500);
+}
+
+.sens-note a { color: var(--blue-700); }
+
+@media (max-width: 600px) {
+    .sens-minis { grid-template-columns: 1fr 1fr; }
+    .kpi-value { font-size: 22px; }
+    .seg button { padding: 7px 11px; }
+}
+
+/* Tooltip menempel di bawah grafik pada layar sempit */
+@media (max-width: 600px) {
+    .sens-tooltip.is-docked {
+        position: static;
+        max-width: none;
+        min-width: 0;
+        margin-top: 8px;
+        box-shadow: none;
+        background: var(--gray-50);
+        transform: none;
+        opacity: 1;
+    }
+}

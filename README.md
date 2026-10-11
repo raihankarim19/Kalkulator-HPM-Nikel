@@ -31,6 +31,7 @@ Kalkulator ini:
 - 🧮 **Menghitung HPM per komponen**: Ni, Fe, Co, Cr, lalu konversi ke basis basah (wmt).
 - ⚖️ **Menerapkan dua rezim CF otomatis**: normal (Ni > 1,2%) dan kadar rendah (Ni ≤ 1,2%).
 - 🚦 **Memeriksa ambang mineral ikutan**: Fe ≤ 35% dan Co ≥ 0,05%.
+- 📈 **Grafik sensitivitas kadar Ni** per langkah 0,01%, dengan Fe, Co, Cr, dan MC ikut menyesuaikan pola geologis profil laterit. Lompatan HPM di batas CF 1,2% dan ambang Fe 35% langsung terlihat.
 - 🔄 **Membandingkan dengan rumus sebelumnya** (Kepmen 144/2026), lengkap dengan selisih dan persentase perubahan.
 - 🌐 **Mengambil HMA terbaru dalam sekejap** dari [`hma.json`](hma.json) yang diperbarui otomatis tiap hari, atau bisa diisi manual.
 - 📲 **Bisa di-install sebagai aplikasi** (PWA) dan tetap jalan offline.
@@ -55,6 +56,20 @@ HPM (USD/wmt) = [ (%Ni × CF_Ni × HMA_Nikel)
 > Ada lompatan CF di batas 1,2%: Ni 1,20% mendapat CF 14%, sedangkan Ni 1,21% mendapat 26,1%. Untuk bijih saprolit dan limonit di atas 1,2%, hasil Kepmen 363/2026 sama persis dengan Kepmen 144/2026.
 
 Penjelasan lengkap, tabel CF per kadar, dan sumber ada di **[docs/RUMUS.md](docs/RUMUS.md)**.
+
+## Sensitivitas kadar Ni
+
+<div align="center"><img src="docs/img/sensitivitas.png" width="820" alt="Grafik sensitivitas HPM terhadap kadar Ni"></div>
+
+Bagian 6 menjawab pertanyaan "berapa nilai tambahan setiap +0,01% Ni?". Kadar unsur lain tidak dibuat tetap, karena di alam mereka ikut berubah:
+
+| Zona profil | Saat Ni naik… |
+|---|---|
+| Limonit (Ni ≲ 1,4%) | Fe dan Cr turun perlahan, Co naik menuju puncaknya di dasar limonit |
+| Transisi (Ni 1,4–1,55%) | Fe turun tajam dan bisa melewati ambang 35%, sehingga komponen besi tiba-tiba ikut dihitung |
+| Saprolit | Fe, Co, Cr rendah dan landai; MgO/SiO₂ dominan |
+
+Model memakai dua jalur profil (atas dan bawah) yang dipilih otomatis dari kadar Fe input, dan hanya memakai **laju perubahan** di sekitar input Anda. Metodologi, tabel profil, dan referensi geologi ada di [docs/RUMUS.md](docs/RUMUS.md#sensitivitas-kadar-ni).
 
 ### Contoh perhitungan
 
@@ -130,7 +145,8 @@ Test memvalidasi engine terhadap angka HPM yang dipublikasikan Shanghai Metals M
 
 ```
 ├── index.html          # UI + controller
-├── calculator.js       # Engine perhitungan HPM (bisa dipakai di browser & Node)
+├── calculator.js       # Engine perhitungan HPM + model sensitivitas (browser & Node)
+├── sensitivity.js      # Grafik sensitivitas kadar Ni (SVG, tanpa library)
 ├── styles.css          # Tampilan
 ├── sw.js               # Service worker (offline / PWA)
 ├── manifest.json       # Manifest PWA

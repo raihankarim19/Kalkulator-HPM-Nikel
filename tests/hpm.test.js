@@ -79,3 +79,57 @@ test('Saprolit (Ni > 1,2%): rumus 363/2026 = rumus 144/2026', () => {
     const r = HPM.calculate({ ni: 1.81, fe: 11.79, co: 0.03, cr: 0.77, mc: 35, ...PERIODS['Okt-I 2026'] });
     near(r.selisih, 0, 1e-9);
 });
+
+// ------------------------------------------------------------
+// Sensitivitas kadar Ni + korelasi geologis
+// ------------------------------------------------------------
+const OKT = PERIODS['Okt-I 2026'];
+const LIMONIT = { ni: 1.35, fe: 40.5, co: 0.15, cr: 2.24, mc: 36.69, ...OKT };
+const SAPROLIT = { ni: 1.81, fe: 11.79, co: 0.03, cr: 0.77, mc: 35, ...OKT };
+
+test('Sensitivitas: 21 titik untuk ±0,10% dengan langkah 0,01%, titik tengah = input', () => {
+    const s = HPM.sensitivity(LIMONIT, { range: 0.10 });
+    assert.equal(s.rows.length, 21);
+    assert.equal(s.rows[10].ni, 1.35);
+    near(s.rows[10].hpm, HPM.calculate(LIMONIT).hpm, 1e-9);
+    near(s.rows[10].delta, 0, 1e-9);
+});
+
+test('Jalur profil otomatis: limonit → atas, saprolit ber-Fe rendah → bawah', () => {
+    assert.equal(HPM.sensitivity(LIMONIT).path, 'atas');
+    assert.equal(HPM.sensitivity(SAPROLIT).path, 'bawah');
+});
+
+test('Profil atas: Ni naik ⇒ Fe dan Cr turun (korelasi negatif)', () => {
+    const s = HPM.sensitivity(LIMONIT, { range: 0.05 });
+    const first = s.rows[0], last = s.rows[s.rows.length - 1];
+    assert.ok(last.fe < first.fe);
+    assert.ok(last.cr < first.cr);
+});
+
+test('Profil atas: Co memuncak di dasar limonit (Ni 1,4%)', () => {
+    const co = ni => HPM.profileAt('atas', ni).co;
+    assert.ok(co(1.40) > co(1.30) && co(1.40) > co(1.50));
+});
+
+test('Mode "tetap": kadar lain tidak berubah', () => {
+    const s = HPM.sensitivity(LIMONIT, { mode: 'tetap' });
+    assert.ok(s.rows.every(r => r.fe === 40.5 && r.co === 0.15 && r.mc === 36.69));
+});
+
+test('Lompatan di batas Ni 1,2% terdeteksi dan bernilai besar', () => {
+    const s = HPM.sensitivity({ ni: 1.20, fe: 45, co: 0.10, cr: 2, mc: 35, ...OKT });
+    assert.ok(s.events.some(e => e.type === 'cfNi'));
+    assert.ok(s.marginalUp > 15);           // 1,20% → 1,21%: CF 14% → 26,1%
+    assert.ok(Math.abs(s.marginalDown) < 1);
+});
+
+test('Fe melewati 35% di zona transisi terdeteksi', () => {
+    const s = HPM.sensitivity({ ni: 1.45, fe: 36, co: 0.13, cr: 1.9, mc: 36, ...OKT });
+    assert.ok(s.events.some(e => e.type === 'fe'));
+});
+
+test('Kadar hasil penyesuaian tidak pernah negatif', () => {
+    const s = HPM.sensitivity({ ni: 1.5, fe: 0.5, co: 0.001, cr: 0.01, mc: 1, ...OKT }, { range: 0.20, path: 'atas' });
+    assert.ok(s.rows.every(r => r.fe >= 0 && r.co >= 0 && r.cr >= 0 && r.mc >= 0));
+});

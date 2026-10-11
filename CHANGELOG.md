@@ -2,6 +2,16 @@
 
 Semua perubahan penting pada kalkulator dicatat di sini.
 
+## [2.3.0] — 2026-10-11
+
+### Ditambahkan
+- **Bagian 6 — Sensitivitas kadar Ni.** Grafik HPM untuk setiap langkah 0,01% Ni (rentang ±0,05%, ±0,10%, ±0,20%), dengan:
+  - kadar Fe, Co, Cr, dan MC yang ikut berubah mengikuti pola geologis profil laterit (dua jalur profil, dipilih otomatis dari kadar Fe), atau dikunci tetap sebagai pembanding;
+  - kartu nilai marginal "Ni naik/turun 0,01%";
+  - penanda otomatis saat rentang melewati batas CF Ni 1,2%, ambang Fe 35%, atau ambang Co 0,05%;
+  - grafik kecil Fe, Co, Cr, MC; tooltip yang bisa dijelajahi dengan keyboard; dan tabel data lengkap.
+- Metodologi dan referensi geologi di `docs/RUMUS.md`, serta 8 unit test baru untuk model sensitivitas.
+
 ## [2.2.0] — 2026-10-11
 
 ### Diperbaiki
