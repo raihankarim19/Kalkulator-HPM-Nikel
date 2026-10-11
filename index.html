@@ -12,7 +12,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=5">
+    <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
 
@@ -172,6 +172,7 @@
                            oninput="onInputChange()">
                 </div>
             </div>
+            <div class="hma-source" id="hma-source"></div>
         </section>
 
         <!-- Section 3: CF Detail -->
@@ -322,7 +323,7 @@
         <button class="btn btn-secondary" onclick="dismissInstall()" style="padding:8px;">✕</button>
     </div>
 
-    <script src="calculator.js?v=5"></script>
+    <script src="calculator.js?v=6"></script>
     <script>
         // ============================================================
         // UI Controller
@@ -473,26 +474,35 @@
 
             try {
                 const hma = await HPM.fetchHMA();
-
-                document.getElementById('input-hma-nikel').value = hma.nikel;
-                document.getElementById('input-hma-bijihbesi').value = hma.bijihBesi;
-                document.getElementById('input-hma-kobalt').value = hma.kobalt;
-                document.getElementById('input-hma-bijihkrom').value = hma.bijihKrom;
-
-                // Save to localStorage
-                localStorage.setItem('hma_cache', JSON.stringify(hma));
-
-                // Update status
-                const statusEl = document.getElementById('hma-status');
-                statusEl.innerHTML = '<span class="dot"></span><span>Live ESDM</span>';
-
-                showToast('✅ Data HMA berhasil diperbarui dari ESDM', 'success');
+                applyHMA(hma);
+                try { localStorage.setItem('hma_cache', JSON.stringify(hma)); } catch (e) { /* ignore */ }
+                showToast('✅ HMA diperbarui: ' + (hma.periode || 'terbaru'), 'success');
                 onInputChange();
             } catch (err) {
                 showToast('❌ ' + err.message, 'error');
             } finally {
                 btn.classList.remove('btn-loading');
             }
+        }
+
+        // Isi field HMA + tampilkan periode & sumbernya
+        function applyHMA(hma) {
+            document.getElementById('input-hma-nikel').value = hma.nikel;
+            document.getElementById('input-hma-bijihbesi').value = hma.bijihBesi;
+            document.getElementById('input-hma-kobalt').value = hma.kobalt;
+            document.getElementById('input-hma-bijihkrom').value = hma.bijihKrom;
+            setHMAStatus(hma);
+        }
+
+        function setHMAStatus(hma, label) {
+            const statusEl = document.getElementById('hma-status');
+            statusEl.innerHTML = '<span class="dot"></span><span></span>';
+            statusEl.lastChild.textContent = label || hma.periode || 'Terbaru';
+
+            const src = document.getElementById('hma-source');
+            const parts = [hma.periode, hma.dasarHukum, hma.sumber && ('Sumber: ' + hma.sumber)].filter(Boolean);
+            src.textContent = parts.join(' · ');
+            src.classList.toggle('show', parts.length > 0);
         }
 
         // --- Toast ---
@@ -538,21 +548,23 @@
             if (cached) {
                 try {
                     const hma = JSON.parse(cached);
-                    document.getElementById('input-hma-nikel').value = hma.nikel || '';
-                    document.getElementById('input-hma-bijihbesi').value = hma.bijihBesi || '';
-                    document.getElementById('input-hma-kobalt').value = hma.kobalt || '';
-                    document.getElementById('input-hma-bijihkrom').value = hma.bijihKrom || '';
-                    const statusEl = document.getElementById('hma-status');
-                    statusEl.innerHTML = '<span class="dot"></span><span>Cached</span>';
+                    if (HPM.isValidHMA(hma)) {
+                        applyHMA(hma);
+                        setHMAStatus(hma, (hma.periode ? hma.periode + ' (tersimpan)' : 'Tersimpan'));
+                    }
                 } catch (e) { /* ignore */ }
             }
 
-            // Set default HMA if no cache
+            // Belum ada HMA tersimpan: pakai default, lalu ambil HMA terbaru diam-diam
             if (!document.getElementById('input-hma-nikel').value) {
-                document.getElementById('input-hma-nikel').value = HPM.defaultHMA.nikel;
-                document.getElementById('input-hma-bijihbesi').value = HPM.defaultHMA.bijihBesi;
-                document.getElementById('input-hma-kobalt').value = HPM.defaultHMA.kobalt;
-                document.getElementById('input-hma-bijihkrom').value = HPM.defaultHMA.bijihKrom;
+                applyHMA(HPM.defaultHMA);
+                HPM.fetchHMA()
+                    .then(hma => {
+                        applyHMA(hma);
+                        try { localStorage.setItem('hma_cache', JSON.stringify(hma)); } catch (e) { /* ignore */ }
+                        onInputChange();
+                    })
+                    .catch(() => { /* tetap pakai default */ });
             }
 
             // Register service worker

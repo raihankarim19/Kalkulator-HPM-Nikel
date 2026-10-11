@@ -2,7 +2,7 @@
 // Service Worker — HPM Bijih Nikel Calculator PWA
 // ============================================================
 
-const CACHE_NAME = 'hpm-nikel-v4';
+const CACHE_NAME = 'hpm-nikel-v5';
 const ASSETS = [
     './',
     './index.html',
@@ -38,8 +38,8 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     const url = event.request.url;
 
-    // Network-first for HMA data (CORS proxy requests)
-    if (url.includes('allorigins') || url.includes('corsproxy') || url.includes('minerba.esdm.go.id')) {
+    // Network-first for HMA data (hma.json & CORS proxy requests)
+    if (url.includes('hma.json') || url.includes('allorigins') || url.includes('corsproxy') || url.includes('codetabs') || url.includes('minerba.esdm.go.id')) {
         event.respondWith(
             fetch(event.request)
                 .catch(() => caches.match(event.request))

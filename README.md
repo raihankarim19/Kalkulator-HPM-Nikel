@@ -32,7 +32,7 @@ Kalkulator ini:
 - ⚖️ **Menerapkan dua rezim CF otomatis**: normal (Ni > 1,2%) dan kadar rendah (Ni ≤ 1,2%).
 - 🚦 **Memeriksa ambang mineral ikutan**: Fe ≤ 35% dan Co ≥ 0,05%.
 - 🔄 **Membandingkan dengan rumus sebelumnya** (Kepmen 144/2026), lengkap dengan selisih dan persentase perubahan.
-- 🌐 **Mengambil HMA terbaru** dari situs Ditjen Minerba ESDM, atau bisa diisi manual.
+- 🌐 **Mengambil HMA terbaru dalam sekejap** dari [`hma.json`](hma.json) yang diperbarui otomatis tiap hari, atau bisa diisi manual.
 - 📲 **Bisa di-install sebagai aplikasi** (PWA) dan tetap jalan offline.
 
 ## Rumus
@@ -89,11 +89,21 @@ Dengan rumus Kepmen 144/2026, bijih yang sama bernilai 41,93 USD/wmt, jadi HPM t
 </table>
 </div>
 
+## Data HMA
+
+Browser tidak bisa membaca situs ESDM secara langsung (diblokir CORS), dan proxy publik sering mati. Karena itu HMA disimpan di [`hma.json`](hma.json), satu domain dengan aplikasi:
+
+1. **GitHub Actions** ([`update-hma.yml`](.github/workflows/update-hma.yml)) menjalankan [`scripts/update-hma.mjs`](scripts/update-hma.mjs) setiap hari pukul 08.17 WIB. Script mengambil tabel HMA dari minerba.esdm.go.id di sisi server.
+2. `hma.json` **hanya ditulis bila keempat HMA ditemukan dan lolos uji kewajaran**. Bila situs ESDM down, sedang perbaikan, atau strukturnya berubah, data lama dibiarkan.
+3. Tombol **🔄 Ambil HMA** membaca `hma.json`. Proxy ke situs ESDM hanya dipakai sebagai cadangan terakhir.
+
+**Memperbarui manual:** edit `hma.json` langsung di GitHub (ikon ✏️), ganti angka dan `periode`, lalu commit. Workflow juga bisa dijalankan kapan saja dari tab **Actions → Perbarui HMA → Run workflow**.
+
 ## Cara pakai
 
 1. Buka **[raihankarim19.github.io/Kalkulator-HPM-Nikel](https://raihankarim19.github.io/Kalkulator-HPM-Nikel/)**.
 2. Pilih preset (Saprolit, Limonit, Limonit LG) atau **Custom**, lalu isi kadar Ni, Fe, Co, Cr, dan MC dalam persen.
-3. Tekan **🔄 Ambil HMA** untuk memakai HMA terbaru, atau isi manual.
+3. HMA terbaru terisi otomatis saat pertama dibuka. Tekan **🔄 Ambil HMA** untuk menyegarkan, atau isi manual.
 4. HPM dan rinciannya langsung terhitung saat Anda mengetik.
 
 **Install di ponsel:** buka di Chrome (Android) lalu pilih *Install*, atau di Safari (iOS) pilih *Share → Add to Home Screen*.
@@ -124,8 +134,12 @@ Test memvalidasi engine terhadap angka HPM yang dipublikasikan Shanghai Metals M
 ├── styles.css          # Tampilan
 ├── sw.js               # Service worker (offline / PWA)
 ├── manifest.json       # Manifest PWA
+├── hma.json            # HMA terbaru (diperbarui otomatis)
+├── scripts/
+│   └── update-hma.mjs  # Pengambil HMA dari ESDM (dipakai GitHub Actions)
 ├── tests/
-│   └── hpm.test.js     # Unit test engine
+│   ├── hpm.test.js         # Unit test engine
+│   └── update-hma.test.mjs # Unit test parser HMA
 ├── docs/
 │   ├── RUMUS.md        # Metodologi & sumber
 │   └── img/            # Screenshot

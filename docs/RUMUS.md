@@ -68,7 +68,7 @@ Validasi ini dijalankan otomatis lewat `npm test` (lihat [`tests/hpm.test.js`](.
 
 - Rumus disusun dari pemberitaan dan rekonsiliasi dengan angka publikasi, bukan dari salinan resmi lampiran Kepmen. Untuk keperluan transaksi atau pelaporan, cocokkan dengan dokumen resmi Kementerian ESDM.
 - Kalkulator hanya menghitung HPM **bijih** nikel. Kepmen 363/2026 juga mengatur CF produk olahan (MHP, MSP, feronikel, NPI, nickel matte, dan lainnya) yang belum dicakup di sini.
-- Pengambilan HMA otomatis bergantung pada CORS proxy publik dan struktur halaman minerba.esdm.go.id. Bila gagal, isi HMA secara manual.
+- HMA diambil dari `hma.json`, yang diperbarui otomatis dari minerba.esdm.go.id oleh GitHub Actions. Bila struktur halaman ESDM berubah, pembaruan otomatis berhenti dengan aman (data lama dipertahankan) dan `hma.json` perlu diperbarui manual.
 
 ## Sumber
 

@@ -206,131 +206,118 @@ const HPM = (() => {
         };
     }
 
+    // Rentang wajar HMA (USD/dmt) — menolak hasil parse yang keliru
+    const HMA_SANITY = {
+        nikel:     [5000, 60000],
+        kobalt:    [5000, 150000],
+        bijihBesi: [0.1, 10],
+        bijihKrom: [0.5, 50],
+    };
+
+    function isValidHMA(d) {
+        return !!d && Object.entries(HMA_SANITY).every(([k, [min, max]]) =>
+            typeof d[k] === 'number' && d[k] >= min && d[k] <= max);
+    }
+
+    async function fetchWithTimeout(url, ms, opts = {}) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), ms);
+        try {
+            return await fetch(url, { ...opts, signal: controller.signal });
+        } finally {
+            clearTimeout(timeoutId);
+        }
+    }
+
     /**
-     * Fetch HMA from ESDM website via CORS proxy
-     * Tries multiple proxy services for redundancy
+     * Ambil HMA terbaru.
+     *  1. hma.json di repo (same-origin, diperbarui otomatis oleh GitHub Actions)
+     *  2. Cadangan: halaman HMA ESDM lewat CORS proxy publik (paralel, yang
+     *     pertama berhasil dipakai)
      */
     async function fetchHMA() {
+        // 1) hma.json — andal, tanpa proxy
+        try {
+            const res = await fetchWithTimeout('hma.json?t=' + Date.now(), 8000, { cache: 'no-store' });
+            if (res.ok) {
+                const data = await res.json();
+                if (isValidHMA(data)) {
+                    return { ...data, lastUpdated: new Date().toISOString(), via: 'repo' };
+                }
+            }
+        } catch (e) { /* lanjut ke cadangan */ }
+
+        // 2) Cadangan: ESDM via proxy, dijalankan paralel
         const targetUrl = 'https://www.minerba.esdm.go.id/harga_acuan';
         const proxies = [
             `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
             `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
             `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`,
-            `https://www.whateverorigin.org/get?url=${encodeURIComponent(targetUrl)}&callback=`,
-            `https://thingproxy.freeboard.io/fetch/${targetUrl}`
         ];
 
-        let html = null;
+        const attempt = async (proxyUrl) => {
+            const res = await fetchWithTimeout(proxyUrl, 10000, {
+                headers: { 'Accept': 'text/html,application/xhtml+xml,*/*' }
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const parsed = parseHMAFromHTML(await res.text());
+            if (!parsed) throw new Error('Tabel HMA tidak ditemukan');
+            return parsed;
+        };
 
-        for (const proxyUrl of proxies) {
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 12000);
-
-                const response = await fetch(proxyUrl, {
-                    signal: controller.signal,
-                    headers: {
-                        'Accept': 'text/html,application/xhtml+xml,*/*'
-                    }
-                });
-                clearTimeout(timeoutId);
-
-                if (response.ok) {
-                    let text = await response.text();
-                    // Handle JSONP callback wrapper from whateverorigin
-                    if (text.startsWith('(') || text.startsWith('{')) {
-                        try {
-                            const json = JSON.parse(text.replace(/^\(|\);?$/g, ''));
-                            text = json.contents || json.html || text;
-                        } catch(e) { /* not JSON, use as-is */ }
-                    }
-                    // Verify it's actual HTML from ESDM
-                    if (text.includes('minerba') || text.includes('harga') || text.includes('Nikel')) {
-                        html = text;
-                        break;
-                    }
-                }
-            } catch (e) {
-                continue;
-            }
+        try {
+            return await Promise.any(proxies.map(attempt));
+        } catch (e) {
+            throw new Error('Gagal mengambil data HMA. Silakan input manual.');
         }
-
-        if (!html) {
-            throw new Error('Gagal mengambil data HMA. Semua proxy tidak merespon. Silakan input manual.');
-        }
-
-        return parseHMAFromHTML(html);
     }
 
     /**
-     * Parse HMA values from ESDM HTML page
-     * The ESDM table has rows like:
-     *   Nikel | value_period1 | value_period2 | ...
+     * Parse HMA dari halaman ESDM. Mengembalikan null bila keempat HMA
+     * tidak ditemukan atau tidak wajar (mis. halaman "sedang perbaikan").
      */
     function parseHMAFromHTML(html) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
+        if (typeof DOMParser === 'undefined') return null;
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const found = {};
 
-        let result = { ...defaultHMA };
-        result.lastUpdated = new Date().toISOString();
-        result.periode = null;
+        for (const row of doc.querySelectorAll('tr')) {
+            const cells = row.querySelectorAll('td, th');
+            if (cells.length < 2) continue;
 
-        const tables = doc.querySelectorAll('table');
+            const labelLower = (cells[0]?.textContent || '').trim().toLowerCase();
+            let key = null;
+            if ((labelLower.includes('nikel') || labelLower.includes('nickel'))
+                && !labelLower.includes('bijih') && !labelLower.includes('ore')) key = 'nikel';
+            else if (labelLower.includes('kobalt') || labelLower.includes('cobalt')) key = 'kobalt';
+            else if (labelLower.includes('bijih besi') || labelLower.includes('laterit')
+                || labelLower.includes('hematit') || labelLower.includes('magnetit')
+                || labelLower.includes('iron ore')) key = 'bijihBesi';
+            else if (labelLower.includes('krom') || labelLower.includes('chrom')) key = 'bijihKrom';
+            if (!key || found[key] !== undefined) continue;
 
-        for (const table of tables) {
-            const rows = table.querySelectorAll('tr');
-            for (const row of rows) {
-                const cells = row.querySelectorAll('td, th');
-                if (cells.length < 2) continue;
-
-                const label = (cells[0]?.textContent || '').trim();
-                const labelLower = label.toLowerCase();
-
-                // Get the latest non-empty numeric value (last column first)
-                let latestValue = null;
-                for (let i = cells.length - 1; i >= 1; i--) {
-                    let cellText = (cells[i]?.textContent || '').trim();
-                    if (!cellText || !/\d/.test(cellText)) continue;
-
-                    // US format: 16,933.57 | ID format: 16.933,57 | Plain: 16933.57
-                    const lastComma = cellText.lastIndexOf(',');
-                    const lastPeriod = cellText.lastIndexOf('.');
-
-                    let numStr;
-                    if (lastComma > lastPeriod) {
-                        numStr = cellText.replace(/\./g, '').replace(',', '.');
-                    } else {
-                        numStr = cellText.replace(/,/g, '');
-                    }
-
-                    const num = parseFloat(numStr);
-                    if (!isNaN(num) && num > 0) {
-                        latestValue = num;
-                        break;
-                    }
-                }
-
-                if (latestValue === null) continue;
-
-                if ((labelLower.includes('nikel') || labelLower.includes('nickel'))
-                    && !labelLower.includes('bijih nikel')
-                    && !labelLower.includes('ore')) {
-                    result.nikel = latestValue;
-                } else if (labelLower.includes('kobalt') || labelLower.includes('cobalt')) {
-                    result.kobalt = latestValue;
-                } else if (labelLower.includes('bijih besi')
-                    || labelLower.includes('laterit')
-                    || labelLower.includes('hematit')
-                    || labelLower.includes('magnetit')
-                    || labelLower.includes('iron ore')) {
-                    result.bijihBesi = latestValue;
-                } else if (labelLower.includes('krom') || labelLower.includes('chrom')) {
-                    result.bijihKrom = latestValue;
-                }
+            // Nilai numerik paling kanan = periode terbaru
+            for (let i = cells.length - 1; i >= 1; i--) {
+                const cellText = (cells[i]?.textContent || '').trim().replace(/[^\d.,-]/g, '');
+                if (!/\d/.test(cellText)) continue;
+                const lastComma = cellText.lastIndexOf(',');
+                const lastPeriod = cellText.lastIndexOf('.');
+                const numStr = lastComma > lastPeriod
+                    ? cellText.replace(/\./g, '').replace(',', '.')   // format ID: 16.322,67
+                    : cellText.replace(/,/g, '');                      // format US: 16,322.67
+                const num = parseFloat(numStr);
+                if (!isNaN(num) && num > 0) { found[key] = num; break; }
             }
         }
 
-        return result;
+        if (!isValidHMA(found)) return null;
+        return {
+            ...found,
+            periode: 'Live ESDM',
+            sumber: 'Ditjen Minerba ESDM',
+            lastUpdated: new Date().toISOString(),
+            via: 'esdm'
+        };
     }
 
     /** Format number as USD currency */
@@ -358,6 +345,7 @@ const HPM = (() => {
         checkFe,
         checkCo,
         calculate,
+        isValidHMA,
         fetchHMA,
         formatUSD,
         formatPct

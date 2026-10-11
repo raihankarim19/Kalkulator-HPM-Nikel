@@ -797,3 +797,14 @@ body::before {
 
 /* --- Selection --- */
 ::selection { background: rgba(60, 166, 222, 0.3); color: var(--blue-900); }
+
+/* --- Sumber HMA --- */
+.hma-source {
+    display: none;
+    margin-top: 12px;
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--gray-500);
+}
+
+.hma-source.show { display: block; }

@@ -2,6 +2,19 @@
 
 Semua perubahan penting pada kalkulator dicatat di sini.
 
+## [2.1.0] — 2026-10-11
+
+### Diperbaiki
+- Tombol **Ambil HMA** selalu gagal karena situs minerba.esdm.go.id sedang perbaikan dan proxy CORS publik tidak andal. HMA kini dibaca dari `hma.json` di repo sendiri, jadi selesai dalam sekejap tanpa proxy.
+- Halaman ESDM yang tidak berisi tabel HMA (mis. "sedang perbaikan") sebelumnya bisa terbaca sebagai "berhasil" dengan angka default. Sekarang hasil parse wajib lengkap dan lolos uji kewajaran.
+- Proxy cadangan kini dicoba paralel (maks. ±10 detik), bukan berurutan (hingga 60 detik).
+
+### Ditambahkan
+- `hma.json` berisi HMA Periode I Oktober 2026 (Kepmen ESDM 384.K/MB.01/MEM.B/2026).
+- GitHub Actions harian yang mengambil HMA dari ESDM di sisi server dan memperbarui `hma.json` otomatis.
+- Periode, dasar hukum, dan sumber HMA ditampilkan di bawah isian HMA.
+- HMA terbaru terisi otomatis saat aplikasi pertama kali dibuka.
+
 ## [2.0.0] — 2026-10-11
 
 Pembaruan ke **Kepmen ESDM No. 363.K/MB.01/MEM.B/2026** (berlaku 15 September 2026).
